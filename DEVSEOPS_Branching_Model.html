@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DEVSEOPS Branching Model – Enterprise Documentation</title>
+  <style>
+    :root {
+      --brand-blue: #0052CC;
+      --brand-green: #36B37E;
+      --brand-orange: #FF8B00;
+      --brand-red: #DE350B;
+      --brand-purple: #6554C0;
+      --master-color: #0052CC;
+      --feature-color: #36B37E;
+      --hotfix-color: #DE350B;
+      --tag-color: #FF8B00;
+      --bg: #F4F5F7;
+      --surface: #FFFFFF;
+      --border: #DFE1E6;
+      --text-primary: #172B4D;
+      --text-secondary: #5E6C84;
+      --text-muted: #8993A4;
+      --code-bg: #F4F5F7;
+      --code-border: #DFE1E6;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .top-nav {
+      background: var(--brand-blue);
+      padding: 0 24px;
+      display: flex;
+      align-items: center;
+      height: 56px;
+      gap: 12px;
+      color: white;
+      font-size: 13px;
+    }
+    .top-nav .logo { font-weight: 700; font-size: 16px; display: flex; align-items: center; gap: 8px; }
+    .breadcrumb { display: flex; align-items: center; gap: 6px; color: rgba(255,255,255,0.75); font-size: 12px; margin-left: 8px; }
+    .breadcrumb span { color: white; font-weight: 500; }
+    .badge-dso { margin-left: auto; background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: white; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; letter-spacing: 0.5px; }
+    .layout { display: flex; min-height: calc(100vh - 56px); }
+    .sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 20px 0; flex-shrink: 0; position: sticky; top: 0; height: calc(100vh - 56px); overflow-y: auto; }
+    .sidebar-title { font-size: 11px; font-weight: 700; color: var(--text-muted); letter-spacing: 0.8px; text-transform: uppercase; padding: 0 20px 8px; }
+    .sidebar-item { display: flex; align-items: center; gap: 8px; padding: 7px 20px; font-size: 13px; color: var(--text-secondary); cursor: pointer; border-left: 3px solid transparent; transition: all 0.15s; text-decoration: none; }
+    .sidebar-item:hover { background: var(--bg); color: var(--brand-blue); }
+    .sidebar-item.active { background: #E9F0FF; color: var(--brand-blue); border-left-color: var(--brand-blue); font-weight: 600; }
+    .sidebar-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+    .sidebar-divider { height: 1px; background: var(--border); margin: 10px 20px; }
+    .main { flex: 1; padding: 32px 40px 60px; max-width: 1100px; }
+    .page-header { margin-bottom: 32px; }
+    .page-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--brand-blue); margin-bottom: 8px; }
+    .page-title { font-size: 28px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; line-height: 1.3; }
+    .page-meta { display: flex; gap: 20px; font-size: 12px; color: var(--text-muted); align-items: center; flex-wrap: wrap; }
+    .status-badge { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 3px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
+    .status-approved { background: #E3FCEF; color: #006644; }
+    .status-enterprise { background: #EAE6FF; color: #403294; }
+    .info-panel { background: #E9F0FF; border: 1px solid #B3D4FF; border-left: 4px solid var(--brand-blue); border-radius: 4px; padding: 14px 18px; margin-bottom: 24px; font-size: 13px; color: #172B4D; }
+    .info-panel strong { color: var(--brand-blue); }
+    .section { margin-bottom: 36px; }
+    .section-title { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 4px; padding-bottom: 10px; border-bottom: 2px solid var(--border); display: flex; align-items: center; gap: 10px; }
+    .section-title .icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 15px; flex-shrink: 0; }
+    .section-sub { font-size: 15px; font-weight: 600; color: var(--text-primary); margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
+    .diagram-container { background: #0D1117; border-radius: 8px; padding: 32px 24px; margin: 20px 0; overflow-x: auto; border: 1px solid #30363D; }
+    .diagram-caption { text-align: center; font-size: 12px; color: var(--text-muted); margin-top: 12px; font-style: italic; }
+    .git-diagram { display: block; margin: 0 auto; min-width: 800px; }
+    .flow-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 20px 0; }
+    .flow-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; transition: box-shadow 0.2s; }
+    .flow-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+    .flow-card .step-num { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: white; margin-bottom: 10px; }
+    .flow-card h4 { font-size: 13px; font-weight: 700; margin-bottom: 6px; color: var(--text-primary); }
+    .flow-card p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+    .tag-inline { display: inline-block; padding: 2px 7px; border-radius: 3px; font-size: 11px; font-weight: 600; font-family: monospace; }
+    .tag-feature { background: #E3FCEF; color: #006644; }
+    .tag-master  { background: #E9F0FF; color: #0052CC; }
+    .tag-hotfix  { background: #FFEBE6; color: #BF2600; }
+    .tag-release { background: #FFF7D6; color: #974F0C; }
+    .cmd-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    .cmd-table th { background: var(--brand-blue); color: white; padding: 10px 14px; text-align: left; font-weight: 600; font-size: 12px; letter-spacing: 0.3px; }
+    .cmd-table th:first-child { border-radius: 6px 0 0 0; }
+    .cmd-table th:last-child  { border-radius: 0 6px 0 0; }
+    .cmd-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+    .cmd-table tr:nth-child(even) td { background: #FAFBFC; }
+    .cmd-table tr:last-child td { border-bottom: none; }
+    .cmd-table tr:hover td { background: #E9F0FF; }
+    .cmd-table code { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; font-size: 12px; background: var(--code-bg); border: 1px solid var(--code-border); padding: 2px 6px; border-radius: 3px; color: #BF2600; white-space: pre; display: block; line-height: 1.7; }
+    .cmd-purpose { color: var(--text-secondary); font-size: 12px; }
+    .cmd-category { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 2px 7px; border-radius: 3px; }
+    .cat-branch  { background: #E3FCEF; color: #006644; }
+    .cat-tag     { background: #FFF7D6; color: #974F0C; }
+    .cat-log     { background: #EAE6FF; color: #403294; }
+    .cat-merge   { background: #E9F0FF; color: #0052CC; }
+    .cat-hotfix  { background: #FFEBE6; color: #BF2600; }
+    .code-block { background: #0D1117; border-radius: 6px; padding: 16px 20px; margin: 12px 0; overflow-x: auto; border: 1px solid #30363D; }
+    .code-block pre { font-family: 'SF Mono', 'Fira Code', Consolas, monospace; font-size: 12.5px; line-height: 1.75; color: #E6EDF3; }
+    .code-block .comment { color: #8B949E; }
+    .code-block .cmd     { color: #79C0FF; }
+    .code-block .flag    { color: #FFA657; }
+    .code-block .value   { color: #A5D6FF; }
+    .code-block .output  { color: #56D364; }
+    .code-header { background: #161B22; border-radius: 6px 6px 0 0; padding: 8px 16px; font-size: 11px; color: #8B949E; font-family: monospace; border: 1px solid #30363D; border-bottom: none; display: flex; align-items: center; gap: 6px; }
+    .code-header + .code-block { border-radius: 0 0 6px 6px; margin-top: 0; }
+    .dot-red { width:10px;height:10px;border-radius:50%;background:#FF5F57; }
+    .dot-yel { width:10px;height:10px;border-radius:50%;background:#FEBC2E; }
+    .dot-grn { width:10px;height:10px;border-radius:50%;background:#28C840; }
+    .rules-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    .rules-table th { background: #F4F5F7; border: 1px solid var(--border); padding: 9px 14px; font-weight: 600; font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.3px; }
+    .rules-table td { border: 1px solid var(--border); padding: 9px 14px; vertical-align: top; }
+    .rules-table tr:nth-child(even) td { background: #FAFBFC; }
+    .callout { border-radius: 4px; padding: 12px 16px; margin: 14px 0; font-size: 13px; display: flex; gap: 10px; align-items: flex-start; }
+    .callout-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+    .callout-warning { background: #FFFAE6; border: 1px solid #FFE380; }
+    .callout-success { background: #E3FCEF; border: 1px solid #ABF5D1; }
+    .callout-danger  { background: #FFEBE6; border: 1px solid #FFBDAD; }
+    .version-box { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px 24px; margin: 16px 0; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .version-part { text-align: center; }
+    .version-num { font-size: 32px; font-weight: 700; font-family: monospace; line-height: 1; }
+    .version-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
+    .version-dot { font-size: 28px; font-weight: 300; color: var(--text-muted); align-self: center; }
+    .version-sep { width: 1px; height: 48px; background: var(--border); margin: 0 8px; }
+    .checklist { list-style: none; margin: 12px 0; }
+    .checklist li { padding: 6px 0; display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--text-secondary); border-bottom: 1px solid var(--border); }
+    .checklist li:last-child { border-bottom: none; }
+    .check-icon { color: var(--brand-green); font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+    .page-footer { margin-top: 48px; padding-top: 20px; border-top: 1px solid var(--border); font-size: 11px; color: var(--text-muted); display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  </style>
+</head>
+<body>
+
+<div class="top-nav">
+  <div class="logo">
+    &#9724; DSO &middot; Confluence
+  </div>
+  <div class="breadcrumb">
+    / Engineering &gt; DevSecOps &gt; Source Control &gt;
+    <span>Branching Model</span>
+  </div>
+  <div class="badge-dso">&#127970; Enterprise Standard</div>
+</div>
+
+<div class="layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-title">On this page</div>
+    <a href="#overview"   class="sidebar-item active"><span class="sidebar-dot" style="background:#0052CC"></span>Overview</a>
+    <a href="#diagram"    class="sidebar-item"><span class="sidebar-dot" style="background:#00B8D9"></span>Visual Diagram</a>
+    <a href="#workflow"   class="sidebar-item"><span class="sidebar-dot" style="background:#36B37E"></span>Workflow Steps</a>
+    <a href="#naming"     class="sidebar-item"><span class="sidebar-dot" style="background:#6554C0"></span>Naming Conventions</a>
+    <a href="#version"    class="sidebar-item"><span class="sidebar-dot" style="background:#FF8B00"></span>Version Scheme</a>
+    <div class="sidebar-divider"></div>
+    <a href="#git-branch" class="sidebar-item"><span class="sidebar-dot" style="background:#36B37E"></span>Git: Branch Cmds</a>
+    <a href="#git-tag"    class="sidebar-item"><span class="sidebar-dot" style="background:#FF8B00"></span>Git: Tag Cmds</a>
+    <a href="#git-log"    class="sidebar-item"><span class="sidebar-dot" style="background:#6554C0"></span>Git: Log &amp; History</a>
+    <a href="#git-hotfix" class="sidebar-item"><span class="sidebar-dot" style="background:#DE350B"></span>Git: Hotfix Flow</a>
+    <div class="sidebar-divider"></div>
+    <a href="#quickref"   class="sidebar-item"><span class="sidebar-dot" style="background:#172B4D"></span>Quick Reference</a>
+    <a href="#rules"      class="sidebar-item"><span class="sidebar-dot" style="background:#5E6C84"></span>Branch Rules</a>
+  </aside>
+
+  <main class="main">
+
+    <div class="page-header">
+      <div class="page-label">&#128216; Engineering Documentation</div>
+      <h1 class="page-title">DEVSEOPS Branching Model<br>Enterprise Standard</h1>
+      <div class="page-meta">
+        <div>&#128197; Last updated: April 2026</div>
+        <div>&#9999;&#65039; DSO Engineering Team</div>
+        <div><span class="status-badge status-approved">&#10003; Approved</span></div>
+        <div><span class="status-badge status-enterprise">&#127970; Enterprise Model</span></div>
+      </div>
+    </div>
+
+    <div class="info-panel">
+      <strong>&#8505;&#65039; DSO Recommendation:</strong> This branching model is the officially recommended enterprise standard by the DSO (DevSecOps) team. All product repositories must follow this model for release management, traceability, and hotfix governance.
+    </div>
+
+    <!-- OVERVIEW -->
+    <div class="section" id="overview">
+      <div class="section-title">
+        <div class="icon" style="background:#E9F0FF;">&#128203;</div>
+        Overview
+      </div>
+      <p style="color:var(--text-secondary);margin-bottom:14px;">
+        The DEVSEOPS Enterprise Branching Model defines a structured, traceable Git workflow designed for teams using JIRA for issue tracking and a continuous delivery pipeline. It enforces clear separation between development, release, and emergency hotfix lifecycles.
+      </p>
+      <table class="rules-table">
+        <thead>
+          <tr><th>Branch</th><th>Source</th><th>Target (MR)</th><th>Purpose</th><th>Lifecycle</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag-inline tag-master">master</span></td>
+            <td>&#8212;</td><td>&#8212;</td>
+            <td>Production-ready source of truth</td>
+            <td>Permanent</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-feature">feature/*</span></td>
+            <td>master</td><td>master</td>
+            <td>Feature development per JIRA ticket</td>
+            <td>Short-lived &middot; Delete after merge</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-release">release tag</span></td>
+            <td>master</td><td>&#8212;</td>
+            <td>Immutable release snapshot</td>
+            <td>Permanent tag on master</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-hotfix">hotfix/*</span></td>
+            <td>release tag</td><td>master</td>
+            <td>Emergency production fix</td>
+            <td>Short-lived &middot; Delete after merge</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-release">hotfix release tag</span></td>
+            <td>hotfix/*</td><td>&#8212;</td>
+            <td>Versioned hotfix release snapshot</td>
+            <td>Permanent tag on hotfix</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- DIAGRAM -->
+    <div class="section" id="diagram">
+      <div class="section-title">
+        <div class="icon" style="background:#E0F7FA;">&#127807;</div>
+        Visual Branching Diagram
+      </div>
+      <p style="color:var(--text-secondary);margin-bottom:16px;">
+        The diagram below illustrates the complete lifecycle — from feature development through to release tagging and emergency hotfix resolution.
+      </p>
+
+      <div class="diagram-container">
+        <svg class="git-diagram" viewBox="0 0 920 580" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+          <defs>
+            <marker id="arr-blue"   markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#4D94FF"/></marker>
+            <marker id="arr-green"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#3DD68C"/></marker>
+            <marker id="arr-orange" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#FFAB40"/></marker>
+            <marker id="arr-red"    markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#FF6B6B"/></marker>
+            <marker id="arr-white"  markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#8B949E"/></marker>
+          </defs>
+
+          <!-- Background -->
+          <rect width="920" height="580" fill="#0D1117" rx="8"/>
+
+          <!-- TIME arrow -->
+          <line x1="65" y1="50" x2="860" y2="50" stroke="#30363D" stroke-width="1" marker-end="url(#arr-white)"/>
+          <text x="65" y="44" fill="#484F58" font-size="10">TIME &#8594;</text>
+
+          <!-- Lane Labels (rotated) -->
+          <text x="22" y="108" fill="#4D94FF"  font-size="10" font-weight="700" letter-spacing="1" text-anchor="middle" transform="rotate(-90,22,108)">MASTER</text>
+          <text x="22" y="230" fill="#3DD68C"  font-size="10" font-weight="700" letter-spacing="1" text-anchor="middle" transform="rotate(-90,22,230)">FEATURE</text>
+          <text x="22" y="390" fill="#FF6B6B"  font-size="10" font-weight="700" letter-spacing="1" text-anchor="middle" transform="rotate(-90,22,390)">HOTFIX</text>
+          <text x="22" y="505" fill="#FFAB40"  font-size="10" font-weight="700" letter-spacing="1" text-anchor="middle" transform="rotate(-90,22,505)">TAGS</text>
+
+          <!-- Lane guide lines -->
+          <line x1="45" y1="108" x2="880" y2="108" stroke="#1C2333" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="45" y1="230" x2="880" y2="230" stroke="#1C2333" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="45" y1="390" x2="880" y2="390" stroke="#1C2333" stroke-width="1" stroke-dasharray="4,4"/>
+          <line x1="45" y1="505" x2="880" y2="505" stroke="#1C2333" stroke-width="1" stroke-dasharray="4,4"/>
+
+          <!-- ============================== -->
+          <!-- MASTER BRANCH LINE             -->
+          <!-- ============================== -->
+          <line x1="60" y1="108" x2="850" y2="108" stroke="#4D94FF" stroke-width="3" marker-end="url(#arr-blue)"/>
+
+          <!-- Master commits -->
+          <circle cx="100" cy="108" r="10" fill="#4D94FF" stroke="#0D1117" stroke-width="2"/>
+          <text x="100"  y="92"  fill="#8B949E" font-size="9" text-anchor="middle">Initial commit</text>
+
+          <circle cx="300" cy="108" r="10" fill="#4D94FF" stroke="#0D1117" stroke-width="2"/>
+          <text x="300"  y="92"  fill="#3DD68C" font-size="9" text-anchor="middle" font-weight="600">MR Merged &#8592;</text>
+
+          <circle cx="490" cy="108" r="10" fill="#4D94FF" stroke="#0D1117" stroke-width="2"/>
+          <text x="490"  y="92"  fill="#8B949E" font-size="9" text-anchor="middle">commit</text>
+
+          <circle cx="730" cy="108" r="10" fill="#4D94FF" stroke="#0D1117" stroke-width="2"/>
+          <text x="730"  y="92"  fill="#FF6B6B" font-size="9" text-anchor="middle" font-weight="600">Hotfix MR &#8592;</text>
+
+          <!-- ============================== -->
+          <!-- FEATURE BRANCH                 -->
+          <!-- ============================== -->
+          <path d="M 100 118 Q 100 185 160 230" stroke="#3DD68C" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+
+          <circle cx="160" cy="230" r="9" fill="#3DD68C" stroke="#0D1117" stroke-width="2"/>
+          <text x="160"  y="254" fill="#8B949E" font-size="9" text-anchor="middle">feat commit 1</text>
+
+          <circle cx="240" cy="230" r="9" fill="#3DD68C" stroke="#0D1117" stroke-width="2"/>
+          <text x="240"  y="254" fill="#8B949E" font-size="9" text-anchor="middle">feat commit 2</text>
+
+          <!-- Feature branch label badge -->
+          <rect x="145" y="264" width="168" height="22" rx="4" fill="#0D3D2A"/>
+          <text x="229" y="279" fill="#3DD68C" font-size="10" font-weight="700" text-anchor="middle">feature/PROJ-1234</text>
+
+          <!-- Step annotation 1 -->
+          <rect x="105" y="135" width="105" height="16" rx="3" fill="#1C2333"/>
+          <text x="157" y="147" fill="#8B949E" font-size="9" text-anchor="middle">&#9312; Branch from master</text>
+
+          <!-- MR arrow: feature -> master -->
+          <path d="M 240 221 Q 270 163 292 118" stroke="#3DD68C" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-green)"/>
+
+          <!-- Step annotation 2 -->
+          <rect x="258" y="162" width="80" height="16" rx="3" fill="#1C2333"/>
+          <text x="298" y="174" fill="#8B949E" font-size="9" text-anchor="middle">&#9313; Raise MR</text>
+
+          <!-- ============================== -->
+          <!-- RELEASE TAG v1.0.0.0 (x=490)  -->
+          <!-- ============================== -->
+          <line x1="490" y1="118" x2="490" y2="492" stroke="#FFAB40" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <polygon points="490,505 505,490 490,475 475,490" fill="#FFAB40" stroke="#0D1117" stroke-width="1.5"/>
+          <rect x="460" y="516" width="60" height="20" rx="4" fill="#3D2800"/>
+          <text x="490" y="530" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0.0</text>
+          <text x="490" y="548" fill="#8B949E" font-size="9" text-anchor="middle">Release Tag</text>
+
+          <!-- Step annotation 3 -->
+          <rect x="437" y="460" width="108" height="16" rx="3" fill="#1C2333"/>
+          <text x="491" y="472" fill="#8B949E" font-size="9" text-anchor="middle">&#9314; Tag from master</text>
+
+          <!-- ============================== -->
+          <!-- HOTFIX BRANCH                  -->
+          <!-- ============================== -->
+          <path d="M 490 475 Q 515 432 555 390" stroke="#FF6B6B" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+
+          <circle cx="555" cy="390" r="9" fill="#FF6B6B" stroke="#0D1117" stroke-width="2"/>
+          <text x="555"  y="414" fill="#8B949E" font-size="9" text-anchor="middle">fix commit 1</text>
+
+          <circle cx="640" cy="390" r="9" fill="#FF6B6B" stroke="#0D1117" stroke-width="2"/>
+          <text x="640"  y="414" fill="#8B949E" font-size="9" text-anchor="middle">fix commit 2</text>
+
+          <!-- Hotfix branch label badge -->
+          <rect x="525" y="424" width="165" height="22" rx="4" fill="#3D0A00"/>
+          <text x="608" y="439" fill="#FF6B6B" font-size="10" font-weight="700" text-anchor="middle">hotfix/v1.0.0.1</text>
+
+          <!-- Step annotation 4 -->
+          <rect x="502" y="328" width="125" height="16" rx="3" fill="#1C2333"/>
+          <text x="564" y="340" fill="#8B949E" font-size="9" text-anchor="middle">&#9315; hotfix/* from tag</text>
+
+          <!-- MR arrow: hotfix -> master -->
+          <path d="M 640 381 Q 688 244 722 118" stroke="#FF6B6B" stroke-width="2" fill="none" stroke-dasharray="5,3" marker-end="url(#arr-red)"/>
+
+          <!-- Step annotation 6 -->
+          <rect x="722" y="205" width="102" height="16" rx="3" fill="#1C2333"/>
+          <text x="773" y="217" fill="#8B949E" font-size="9" text-anchor="middle">&#9317; MR &#8594; master</text>
+
+          <!-- ============================== -->
+          <!-- HOTFIX TAG v1.0.0.1 (x=700)   -->
+          <!-- ============================== -->
+          <line x1="700" y1="390" x2="700" y2="492" stroke="#FFAB40" stroke-width="1.5" stroke-dasharray="3,3"/>
+          <polygon points="700,505 715,490 700,475 685,490" fill="#FFAB40" stroke="#0D1117" stroke-width="1.5"/>
+          <rect x="668" y="516" width="64" height="20" rx="4" fill="#3D2800"/>
+          <text x="700" y="530" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0.1</text>
+          <text x="700" y="548" fill="#8B949E" font-size="9" text-anchor="middle">Hotfix Tag</text>
+
+          <!-- Step annotation 5 -->
+          <rect x="644" y="460" width="112" height="16" rx="3" fill="#1C2333"/>
+          <text x="700" y="472" fill="#8B949E" font-size="9" text-anchor="middle">&#9316; Tag from hotfix/*</text>
+
+          <!-- ============================== -->
+          <!-- LEGEND BOX                     -->
+          <!-- ============================== -->
+          <rect x="55" y="300" width="215" height="120" rx="6" fill="#161B22" stroke="#30363D" stroke-width="1"/>
+          <text x="162" y="319" fill="#8B949E" font-size="10" font-weight="700" text-anchor="middle" letter-spacing="0.5">LEGEND</text>
+          <line x1="70" y1="332" x2="102" y2="332" stroke="#4D94FF" stroke-width="3"/>
+          <text x="110" y="336" fill="#C9D1D9" font-size="10">master branch</text>
+          <line x1="70" y1="352" x2="102" y2="352" stroke="#3DD68C" stroke-width="2" stroke-dasharray="5,3"/>
+          <text x="110" y="356" fill="#C9D1D9" font-size="10">feature/* branch</text>
+          <line x1="70" y1="372" x2="102" y2="372" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="5,3"/>
+          <text x="110" y="376" fill="#C9D1D9" font-size="10">hotfix/* branch</text>
+          <polygon points="86,396 93,388 86,380 79,388" fill="#FFAB40"/>
+          <text x="110" y="393" fill="#C9D1D9" font-size="10">release tag (vX.X.X.X)</text>
+        </svg>
+      </div>
+      <p class="diagram-caption">Figure 1 &ndash; DEVSEOPS Enterprise Git Branching Model &middot; DSO Recommended Standard</p>
+    </div>
+
+    <!-- WORKFLOW STEPS -->
+    <div class="section" id="workflow">
+      <div class="section-title">
+        <div class="icon" style="background:#E3FCEF;">&#128260;</div>
+        Step-by-Step Workflow
+      </div>
+
+      <div class="flow-grid">
+        <div class="flow-card">
+          <div class="step-num" style="background:#36B37E;">1</div>
+          <h4>Create Feature Branch from Master</h4>
+          <p>All development starts by branching off <span class="tag-inline tag-master">master</span>. Branch must be named using the JIRA ticket number: <span class="tag-inline tag-feature">feature/PROJ-1234</span></p>
+        </div>
+        <div class="flow-card">
+          <div class="step-num" style="background:#0052CC;">2</div>
+          <h4>Raise MR: feature/* &#8594; master</h4>
+          <p>Once development is complete and tested locally, raise a Merge Request from <span class="tag-inline tag-feature">feature/*</span> into <span class="tag-inline tag-master">master</span>. Peer review required before merge.</p>
+        </div>
+        <div class="flow-card">
+          <div class="step-num" style="background:#FF8B00;">3</div>
+          <h4>Create Release Tag from Master</h4>
+          <p>After MR is merged, create an immutable annotated tag on <span class="tag-inline tag-master">master</span>: <span class="tag-inline tag-release">v1.0.0.0</span>. This marks the production release candidate.</p>
+        </div>
+        <div class="flow-card">
+          <div class="step-num" style="background:#DE350B;">4</div>
+          <h4>Create Hotfix Branch from Release Tag</h4>
+          <p>For production bugs, branch off the specific <span class="tag-inline tag-release">release tag</span>. Name it <span class="tag-inline tag-hotfix">hotfix/v1.0.0.1</span> and bump the 4th version digit (BUILD).</p>
+        </div>
+        <div class="flow-card">
+          <div class="step-num" style="background:#FF8B00;">5</div>
+          <h4>Create Release Tag from Hotfix</h4>
+          <p>Once the hotfix is validated, tag the hotfix branch: <span class="tag-inline tag-release">v1.0.0.1</span>. This becomes the new production release that gets deployed.</p>
+        </div>
+        <div class="flow-card">
+          <div class="step-num" style="background:#6554C0;">6</div>
+          <h4>Merge Hotfix MR back to Master</h4>
+          <p>Raise MR from <span class="tag-inline tag-hotfix">hotfix/*</span> into <span class="tag-inline tag-master">master</span> to ensure the fix is in the main codebase. Prevents future regression.</p>
+        </div>
+      </div>
+
+      <div class="callout callout-warning">
+        <div class="callout-icon">&#9888;&#65039;</div>
+        <div><strong>Critical:</strong> Hotfix branches must <strong>always</strong> be merged back to <code style="background:#FFF3CD;padding:1px 4px;border-radius:3px;">master</code> (Step 6). Skipping this step causes master to diverge from production and leads to regressions in future releases.</div>
+      </div>
+    </div>
+
+    <!-- NAMING CONVENTIONS -->
+    <div class="section" id="naming">
+      <div class="section-title">
+        <div class="icon" style="background:#EAE6FF;">&#127991;&#65039;</div>
+        Naming Conventions
+      </div>
+      <table class="rules-table">
+        <thead>
+          <tr><th>Type</th><th>Pattern</th><th>Example</th><th>Rule</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag-inline tag-feature">feature</span></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">feature/&lt;JIRA-TICKET&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">feature/PROJ-1234</code></td>
+            <td>JIRA ticket number is mandatory. Use uppercase project key.</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-hotfix">hotfix</span></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v&lt;X.X.X.X&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v1.2.0.1</code></td>
+            <td>Version must match the release tag being patched, with last digit incremented.</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-release">release tag</span></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;MAJOR.MINOR.PATCH.BUILD&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td>
+            <td>4-part versioning. Always use annotated tags (not lightweight).</td>
+          </tr>
+          <tr>
+            <td><span class="tag-inline tag-release">hotfix tag</span></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;X.X.X.BUILD+1&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td>
+            <td>Increment the BUILD digit for each hotfix on the same MINOR version.</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- VERSION SCHEME -->
+    <div class="section" id="version">
+      <div class="section-title">
+        <div class="icon" style="background:#FFF7D6;">&#128290;</div>
+        Version Numbering Scheme (x.x.x.x)
+      </div>
+      <p style="color:var(--text-secondary);margin-bottom:14px;">All releases follow a 4-part version format.</p>
+      <div class="version-box">
+        <div class="version-part">
+          <div class="version-num" style="color:#0052CC;">1</div>
+          <div class="version-label">MAJOR</div>
+        </div>
+        <div class="version-dot">.</div>
+        <div class="version-part">
+          <div class="version-num" style="color:#36B37E;">2</div>
+          <div class="version-label">MINOR</div>
+        </div>
+        <div class="version-dot">.</div>
+        <div class="version-part">
+          <div class="version-num" style="color:#6554C0;">0</div>
+          <div class="version-label">PATCH</div>
+        </div>
+        <div class="version-dot">.</div>
+        <div class="version-part">
+          <div class="version-num" style="color:#DE350B;">1</div>
+          <div class="version-label">BUILD/HOTFIX</div>
+        </div>
+        <div class="version-sep"></div>
+        <div style="font-size:13px;color:var(--text-secondary);max-width:320px;">
+          <strong>MAJOR</strong> &ndash; Breaking changes or architecture overhaul<br>
+          <strong>MINOR</strong> &ndash; New features, non-breaking additions<br>
+          <strong>PATCH</strong> &ndash; Bug fixes via normal release cycle<br>
+          <strong>BUILD</strong> &ndash; Emergency hotfix increment (starts at 0 for each release)
+        </div>
+      </div>
+      <table class="rules-table" style="margin-top:16px;">
+        <thead><tr><th>Scenario</th><th>Before</th><th>After</th></tr></thead>
+        <tbody>
+          <tr><td>Normal release from master</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.3.0.0</code></td></tr>
+          <tr><td>First hotfix on v1.2.0.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td></tr>
+          <tr><td>Second hotfix on v1.2.0.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.2</code></td></tr>
+          <tr><td>Major version release</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.5.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v2.0.0.0</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- GIT BRANCH COMMANDS -->
+    <div class="section" id="git-branch">
+      <div class="section-title">
+        <div class="icon" style="background:#E3FCEF;">&#128187;</div>
+        Git Commands &mdash; Branch Operations
+      </div>
+
+      <div class="section-sub">&#127807; Feature Branch Workflow</div>
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Feature Branch Flow</div>
+      <div class="code-block"><pre>
+<span class="comment"># STEP 1: Ensure master is up-to-date</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">master</span>
+<span class="cmd">git</span> <span class="flag">pull</span> <span class="value">origin master</span>
+
+<span class="comment"># STEP 2: Create feature branch from master</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b feature/PROJ-1234</span>
+<span class="comment"># modern alternative:</span>
+<span class="cmd">git</span> <span class="flag">switch</span> <span class="value">-c feature/PROJ-1234</span>
+
+<span class="comment"># STEP 3: Develop, commit your changes</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="value">.</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "feat(PROJ-1234): add user authentication module"</span>
+
+<span class="comment"># STEP 4: Push feature branch to remote</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin feature/PROJ-1234</span>
+
+<span class="comment"># STEP 5: Sync feature branch with latest master (before raising MR)</span>
+<span class="cmd">git</span> <span class="flag">fetch</span> <span class="value">origin</span>
+<span class="cmd">git</span> <span class="flag">rebase</span> <span class="value">origin/master</span>
+
+<span class="comment"># STEP 6: After MR approval and merge — clean up branch</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-d feature/PROJ-1234</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete feature/PROJ-1234</span>
+</pre></div>
+
+      <div class="section-sub">&#128269; Branch Listing &amp; Inspection</div>
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Branch Inspection</div>
+      <div class="code-block"><pre>
+<span class="comment"># List all local branches</span>
+<span class="cmd">git</span> <span class="flag">branch</span>
+
+<span class="comment"># List all remote branches</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-r</span>
+
+<span class="comment"># List all local + remote branches with last commit info</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-avv</span>
+
+<span class="comment"># Show only feature branches</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">--list "feature/*"</span>
+
+<span class="comment"># Show only hotfix branches</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">--list "hotfix/*"</span>
+
+<span class="comment"># Branches already merged into master (safe to delete)</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">--merged master</span>
+
+<span class="comment"># Branches NOT yet merged into master</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">--no-merged master</span>
+
+<span class="comment"># Show remote tracking details</span>
+<span class="cmd">git</span> <span class="flag">remote show</span> <span class="value">origin</span>
+</pre></div>
+    </div>
+
+    <!-- GIT TAG COMMANDS -->
+    <div class="section" id="git-tag">
+      <div class="section-title">
+        <div class="icon" style="background:#FFF7D6;">&#127991;&#65039;</div>
+        Git Commands &mdash; Tag Operations
+      </div>
+
+      <div class="section-sub">&#128204; Creating &amp; Pushing Release Tags</div>
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Release Tagging</div>
+      <div class="code-block"><pre>
+<span class="comment"># TAG FROM MASTER (normal release) ─────────────────────────────────</span>
+
+<span class="comment"># Ensure you're on master and up-to-date</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">master</span>
+<span class="cmd">git</span> <span class="flag">pull</span> <span class="value">origin master</span>
+
+<span class="comment"># Create ANNOTATED tag (recommended — includes tagger, date, message)</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.0 -m "Release v1.0.0.0 — Initial production release"</span>
+
+<span class="comment"># Push specific tag to remote</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.0</span>
+
+<span class="comment"># Push ALL local tags at once</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --tags</span>
+
+<span class="comment"># Tag a specific commit by SHA</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.0 &lt;commit-sha&gt; -m "Release v1.0.0.0"</span>
+
+<span class="comment"># TAG FROM HOTFIX BRANCH ────────────────────────────────────────────</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">hotfix/v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.1 -m "Hotfix v1.0.0.1 — Fix critical null pointer [PROJ-5678]"</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.1</span>
+</pre></div>
+
+      <div class="section-sub">&#128269; Tag Listing &amp; Inspection</div>
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Tag Inspection</div>
+      <div class="code-block"><pre>
+<span class="comment"># List all tags</span>
+<span class="cmd">git</span> <span class="flag">tag</span>
+
+<span class="comment"># List tags matching a pattern</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-l "v1.*"</span>
+
+<span class="comment"># Show tag details — annotated message + commit info</span>
+<span class="cmd">git</span> <span class="flag">show</span> <span class="value">v1.0.0.0</span>
+
+<span class="comment"># Checkout source at a specific tag (detached HEAD)</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">v1.0.0.0</span>
+
+<span class="comment"># Create a hotfix branch FROM a specific release tag</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0.1 v1.0.0.0</span>
+
+<span class="comment"># Delete a local tag (use with caution)</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-d v1.0.0.0</span>
+
+<span class="comment"># Delete a remote tag (use with extreme caution — coordinate with team)</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete v1.0.0.0</span>
+</pre></div>
+    </div>
+
+    <!-- GIT LOG -->
+    <div class="section" id="git-log">
+      <div class="section-title">
+        <div class="icon" style="background:#EAE6FF;">&#128220;</div>
+        Git Commands &mdash; Log &amp; History
+      </div>
+
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Log &amp; History Reference</div>
+      <div class="code-block"><pre>
+<span class="comment"># BASIC LOGS ──────────────────────────────────────────────────────────</span>
+
+<span class="comment"># One-line visual graph — best for branch overview</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--oneline --graph --all --decorate</span>
+
+<span class="comment"># Full commit detail with author, date, subject</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--format="%H %an %ae %ad %s" --date=short</span>
+
+<span class="comment"># FILTERED LOGS ───────────────────────────────────────────────────────</span>
+
+<span class="comment"># Commits on a specific branch</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">feature/PROJ-1234 --oneline</span>
+
+<span class="comment"># Commits between two release tags (useful for changelog generation)</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">v1.0.0.0..v1.0.0.1 --oneline</span>
+
+<span class="comment"># Commits by a specific author</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--author="Jane Doe" --oneline</span>
+
+<span class="comment"># Commits touching a specific file (with full diff)</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--follow -p src/auth/login.py</span>
+
+<span class="comment"># Find commits referencing a JIRA ticket</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--grep="PROJ-1234" --oneline</span>
+
+<span class="comment"># Commits since a date</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--since="2026-01-01" --oneline</span>
+
+<span class="comment"># BRANCH DIFF TRACKING ────────────────────────────────────────────────</span>
+
+<span class="comment"># What's in feature/* but not yet in master</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">master..feature/PROJ-1234 --oneline</span>
+
+<span class="comment"># What's in hotfix/* but not yet in master</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">master..hotfix/v1.0.0.1 --oneline</span>
+
+<span class="comment"># Full pretty graph (save as git alias)</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)&lt;%an&gt;%Creset' --abbrev-commit --all</span>
+
+<span class="comment"># RECOMMENDED GIT ALIASES (add to ~/.gitconfig)</span>
+<span class="comment"># [alias]</span>
+<span class="comment">#   lg  = log --oneline --graph --all --decorate</span>
+<span class="comment">#   lga = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)' --abbrev-commit --all</span>
+</pre></div>
+    </div>
+
+    <!-- HOTFIX FULL FLOW -->
+    <div class="section" id="git-hotfix">
+      <div class="section-title">
+        <div class="icon" style="background:#FFEBE6;">&#128680;</div>
+        Git Commands &mdash; Full Hotfix Workflow
+      </div>
+
+      <div class="callout callout-danger">
+        <div class="callout-icon">&#128680;</div>
+        <div><strong>Emergency Use Only.</strong> Hotfix branches are reserved for critical production defects that cannot wait for the next normal release cycle. Coordinate with the Release Manager before creating a hotfix branch.</div>
+      </div>
+
+      <div class="code-header"><div class="dot-red"></div><div class="dot-yel"></div><div class="dot-grn"></div>&nbsp; bash &mdash; Complete Hotfix Flow (Steps 4 through 6)</div>
+      <div class="code-block"><pre>
+<span class="comment"># STEP 4: Create hotfix branch from release tag ─────────────────────</span>
+<span class="cmd">git</span> <span class="flag">fetch</span> <span class="value">origin --tags</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0.1 v1.0.0.0</span>
+<span class="comment"># Branch is now at the exact state of release v1.0.0.0</span>
+
+<span class="comment"># Bump version in your code (version.txt / pom.xml / package.json)</span>
+<span class="comment"># Change: 1.0.0.0  -&gt;  1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="value">version.txt</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "chore: bump version to v1.0.0.1"</span>
+
+<span class="comment"># Apply the fix</span>
+<span class="cmd">git</span> <span class="flag">add</span> <span class="value">.</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "fix(PROJ-5678): resolve critical NPE in auth service"</span>
+
+<span class="comment"># Push hotfix branch to remote</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin hotfix/v1.0.0.1</span>
+
+<span class="comment"># STEP 5: Tag the hotfix branch ─────────────────────────────────────</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.1 -m "Hotfix v1.0.0.1 — Fix critical NPE in auth [PROJ-5678]"</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.1</span>
+
+<span class="comment"># STEP 6: MR hotfix/* -&gt; master (raise via GitLab/GitHub UI)</span>
+<span class="comment"># After MR approval and merge, verify on master:</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">master</span>
+<span class="cmd">git</span> <span class="flag">pull</span> <span class="value">origin master</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">--oneline -10</span>
+
+<span class="comment"># Clean up hotfix branch</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-d hotfix/v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete hotfix/v1.0.0.1</span>
+
+<span class="output"># Hotfix complete. v1.0.0.1 is in production. master is fully synced.</span>
+</pre></div>
+    </div>
+
+    <!-- QUICK REFERENCE -->
+    <div class="section" id="quickref">
+      <div class="section-title">
+        <div class="icon" style="background:#E9F0FF;">&#9889;</div>
+        Quick Reference &mdash; Command Cheatsheet
+      </div>
+
+      <table class="cmd-table">
+        <thead>
+          <tr>
+            <th style="width:80px">Category</th>
+            <th style="width:350px">Command</th>
+            <th>Purpose</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="cmd-category cat-branch">Branch</span></td>
+            <td><code>git checkout -b feature/PROJ-XXX</code></td>
+            <td class="cmd-purpose">Create feature branch from master</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-branch">Branch</span></td>
+            <td><code>git push origin feature/PROJ-XXX</code></td>
+            <td class="cmd-purpose">Push feature branch to remote</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-branch">Branch</span></td>
+            <td><code>git branch -avv</code></td>
+            <td class="cmd-purpose">List all branches with tracking info</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-branch">Branch</span></td>
+            <td><code>git branch --merged master</code></td>
+            <td class="cmd-purpose">Branches already merged into master</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-branch">Branch</span></td>
+            <td><code>git push origin --delete feature/PROJ-XXX</code></td>
+            <td class="cmd-purpose">Delete remote branch after MR merge</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-tag">Tag</span></td>
+            <td><code>git tag -a v1.0.0.0 -m "Release v1.0.0.0"</code></td>
+            <td class="cmd-purpose">Create annotated release tag on master</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-tag">Tag</span></td>
+            <td><code>git push origin v1.0.0.0</code></td>
+            <td class="cmd-purpose">Push specific tag to remote</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-tag">Tag</span></td>
+            <td><code>git push origin --tags</code></td>
+            <td class="cmd-purpose">Push all local tags to remote</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-tag">Tag</span></td>
+            <td><code>git tag -l "v1.*"</code></td>
+            <td class="cmd-purpose">List tags matching a version pattern</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-tag">Tag</span></td>
+            <td><code>git show v1.0.0.0</code></td>
+            <td class="cmd-purpose">Show annotated tag details and commit</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-hotfix">Hotfix</span></td>
+            <td><code>git checkout -b hotfix/v1.0.0.1 v1.0.0.0</code></td>
+            <td class="cmd-purpose">Create hotfix branch from a release tag</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-hotfix">Hotfix</span></td>
+            <td><code>git tag -a v1.0.0.1 -m "Hotfix v1.0.0.1"</code></td>
+            <td class="cmd-purpose">Tag hotfix branch before raising MR</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-log">Log</span></td>
+            <td><code>git log --oneline --graph --all --decorate</code></td>
+            <td class="cmd-purpose">Visual branch graph in terminal</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-log">Log</span></td>
+            <td><code>git log v1.0.0.0..v1.0.0.1 --oneline</code></td>
+            <td class="cmd-purpose">Commits between two release tags (changelog)</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-log">Log</span></td>
+            <td><code>git log --grep="PROJ-1234" --oneline</code></td>
+            <td class="cmd-purpose">Find commits by JIRA ticket reference</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-log">Log</span></td>
+            <td><code>git log master..feature/PROJ-XXX --oneline</code></td>
+            <td class="cmd-purpose">Commits in feature not yet in master</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-merge">Merge</span></td>
+            <td><code>git fetch origin &amp;&amp; git rebase origin/master</code></td>
+            <td class="cmd-purpose">Sync feature branch with latest master</td>
+          </tr>
+          <tr>
+            <td><span class="cmd-category cat-merge">Merge</span></td>
+            <td><code>git diff master...feature/PROJ-XXX</code></td>
+            <td class="cmd-purpose">Show all changes in feature vs master</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- BRANCH RULES -->
+    <div class="section" id="rules">
+      <div class="section-title">
+        <div class="icon" style="background:#FFEBE6;">&#128207;</div>
+        Branch Protection Rules &amp; Governance
+      </div>
+
+      <ul class="checklist">
+        <li><span class="check-icon">&#10003;</span> <div><strong>master</strong> is a protected branch &mdash; direct pushes are <em>not allowed</em>. All changes must come via an approved MR.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>All MRs to master require at least <strong>1 peer reviewer approval</strong> before merge.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>CI/CD pipeline must <strong>pass all checks</strong> (build, test, security scan) before MR can be merged.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Feature branches must be <strong>deleted after merge</strong> to keep the repository clean.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Branch name must follow <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">feature/JIRA-XXXX</code> or <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">hotfix/vX.X.X.X</code> convention &mdash; enforced via push rules.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Release tags are <strong>immutable and permanent</strong> &mdash; never delete or force-move a release tag.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Hotfix branches <strong>must always be merged back to master</strong> (Step 6) to prevent regression in future releases.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Version bump commit must be the <strong>first commit</strong> on a hotfix branch, before applying the fix.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>All commit messages must reference the JIRA ticket: <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">fix(PROJ-5678): ...</code> or <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">feat(PROJ-1234): ...</code></div></li>
+      </ul>
+
+      <div class="callout callout-success" style="margin-top:18px;">
+        <div class="callout-icon">&#9989;</div>
+        <div><strong>DSO Compliance:</strong> Teams following this model achieve full traceability from JIRA ticket &rarr; commit &rarr; branch &rarr; release tag &rarr; production deployment, satisfying enterprise audit and change-management requirements.</div>
+      </div>
+    </div>
+
+    <div class="page-footer">
+      <div>&#128216; DEVSEOPS Branching Model &middot; Enterprise Standard &middot; DSO Engineering</div>
+      <div>Last reviewed: April 2026 &middot; Status: <strong>Approved</strong></div>
+    </div>
+
+  </main>
+</div>
+
+</body>
+</html>
