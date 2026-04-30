@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Full Pipeline Architecture — Branch × Environment Flow</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg:        #0A0F1E;
+–surface:   #0F1629;
+–panel:     #131A30;
+–border:    rgba(255,255,255,0.07);
+
+```
+--feature:   #2563EB;
+--feature-bg:#0D1F4A;
+--feature-glow: rgba(37,99,235,0.25);
+
+--master:    #16A34A;
+--master-bg: #0A2417;
+--master-glow: rgba(22,163,74,0.25);
+
+--hotfix:    #DC2626;
+--hotfix-bg: #2A0A0A;
+--hotfix-glow: rgba(220,38,38,0.25);
+
+--ci:        #1D4ED8;
+--build:     #1E40AF;
+--snap:      #7C3AED;
+--deploy-dev:#0D9488;
+--deploy-qa: #D97706;
+--uat:       #2563EB;
+--prod:      #DC2626;
+--dr:        #9F1239;
+--approved:  #15803D;
+--release:   #6D28D9;
+--cab:       #D97706;
+
+--text:      #F1F5F9;
+--text-dim:  #94A3B8;
+--text-muted:#475569;
+
+--radius:    8px;
+--radius-lg: 12px;
+--font-mono: 'IBM Plex Mono', monospace;
+--font-sans: 'IBM Plex Sans', sans-serif;
+```
+
+}
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–font-sans);
+min-height: 100vh;
+padding: 40px 32px 60px;
+}
+
+/* ── Header ─────────────────────────────────── */
+.page-header {
+text-align: center;
+margin-bottom: 40px;
+}
+.page-header .eyebrow {
+font-family: var(–font-mono);
+font-size: 11px;
+letter-spacing: 3px;
+color: var(–text-muted);
+text-transform: uppercase;
+margin-bottom: 8px;
+}
+.page-header h1 {
+font-size: 22px;
+font-weight: 700;
+letter-spacing: -0.5px;
+color: var(–text);
+}
+.page-header h1 span { color: #60A5FA; }
+
+/* ── Legend ─────────────────────────────────── */
+.legend {
+display: flex;
+flex-wrap: wrap;
+gap: 10px 24px;
+justify-content: center;
+margin-bottom: 40px;
+}
+.legend-item {
+display: flex;
+align-items: center;
+gap: 7px;
+font-size: 11px;
+color: var(–text-dim);
+font-family: var(–font-mono);
+}
+.legend-dot {
+width: 10px; height: 10px;
+border-radius: 50%;
+flex-shrink: 0;
+}
+.legend-sq {
+width: 10px; height: 10px;
+border-radius: 2px;
+flex-shrink: 0;
+}
+.legend-dashed {
+width: 14px; height: 10px;
+border: 1.5px dashed #D97706;
+border-radius: 2px;
+flex-shrink: 0;
+}
+
+/* ── Diagram wrapper ─────────────────────────── */
+.diagram {
+display: flex;
+flex-direction: column;
+gap: 12px;
+max-width: 1300px;
+margin: 0 auto;
+}
+
+/* ── Lane ────────────────────────────────────── */
+.lane {
+display: flex;
+align-items: stretch;
+border-radius: var(–radius-lg);
+overflow: hidden;
+border: 1px solid var(–border);
+}
+.lane-label {
+width: 60px;
+flex-shrink: 0;
+display: flex;
+align-items: center;
+justify-content: center;
+writing-mode: vertical-rl;
+text-orientation: mixed;
+transform: rotate(180deg);
+font-family: var(–font-mono);
+font-size: 11px;
+font-weight: 600;
+letter-spacing: 2.5px;
+text-transform: uppercase;
+}
+.lane-label.feature { background: var(–feature-bg); color: #60A5FA; border-right: 2px solid var(–feature); }
+.lane-label.master  { background: var(–master-bg);  color: #4ADE80; border-right: 2px solid var(–master); }
+.lane-label.hotfix  { background: var(–hotfix-bg);  color: #FCA5A5; border-right: 2px solid var(–hotfix); }
+
+.lane-body {
+flex: 1;
+padding: 20px 24px;
+display: flex;
+flex-direction: column;
+gap: 16px;
+}
+.lane-body.feature { background: var(–feature-bg); }
+.lane-body.master  { background: var(–master-bg);  }
+.lane-body.hotfix  { background: var(–hotfix-bg);  }
+
+/* ── Flow row ────────────────────────────────── */
+.flow-row {
+display: flex;
+align-items: center;
+gap: 0;
+flex-wrap: nowrap;
+}
+
+/* ── Arrow ───────────────────────────────────── */
+.arrow {
+display: flex;
+align-items: center;
+flex-shrink: 0;
+padding: 0 2px;
+}
+.arrow svg { display: block; }
+.arrow.dashed svg line { stroke-dasharray: 4 3; }
+
+/* ── Node ────────────────────────────────────── */
+.node {
+display: flex;
+flex-direction: column;
+align-items: center;
+justify-content: center;
+text-align: center;
+border-radius: var(–radius);
+padding: 9px 14px;
+flex-shrink: 0;
+position: relative;
+transition: transform 0.15s, box-shadow 0.15s;
+cursor: default;
+}
+.node:hover {
+transform: translateY(-2px);
+filter: brightness(1.12);
+}
+.node .label {
+font-size: 12px;
+font-weight: 600;
+line-height: 1.3;
+white-space: nowrap;
+}
+.node .sub {
+font-size: 10px;
+font-family: var(–font-mono);
+opacity: 0.7;
+margin-top: 2px;
+white-space: nowrap;
+}
+.node .icon { font-size: 13px; margin-bottom: 2px; }
+
+/* Node colour variants */
+.n-ci    { background: #1D3A8A; border: 1px solid #3B5FCC; color: #BFDBFE; min-width: 120px; }
+.n-build { background: #1E3A6E; border: 1px solid #2563EB; color: #93C5FD; min-width: 108px; }
+.n-snap  { background: #3B1F72; border: 1px solid #7C3AED; color: #DDD6FE; min-width: 120px; }
+.n-art   { background: #1A4040; border: 1px solid #0D9488; color: #99F6E4; min-width: 130px; }
+.n-dev   { background: #0F3A32; border: 1px solid #059669; color: #6EE7B7; min-width: 116px; }
+.n-qa    { background: #3A2200; border: 1px solid #D97706; color: #FDE68A; min-width: 116px; }
+.n-mr    { background: #1E293B; border: 1px solid #475569; color: #CBD5E1; min-width: 96px; }
+.n-review{ background: #1E3A5F; border: 1px solid #2563EB; color: #93C5FD; min-width: 120px; }
+.n-approved { background: #14532D; border: 1px solid #16A34A; color: #86EFAC; min-width: 120px; }
+.n-release  { background: #3B1F72; border: 1px solid #7C3AED; color: #DDD6FE; min-width: 130px; }
+.n-tag      { background: #2D1B4E; border: 1px solid #6D28D9; color: #C4B5FD; min-width: 110px; }
+.n-promote  { background: #3B1F72; border: 1px solid #8B5CF6; color: #DDD6FE; min-width: 130px; }
+.n-vbump    { background: #1E3A5F; border: 1px solid #2563EB; color: #93C5FD; min-width: 110px; }
+.n-uat      { background: #1E3A8A; border: 1px solid #2563EB; color: #93C5FD; min-width: 80px; }
+.n-uatdr    { background: #1E3A6E; border: 1px solid #3B5FCC; color: #BFDBFE; min-width: 80px; }
+.n-cab      { background: #3A2200; border: 1px solid #D97706; color: #FDE68A; min-width: 110px; }
+.n-prod     { background: #7F1D1D; border: 1px solid #DC2626; color: #FCA5A5; min-width: 80px; }
+.n-proddr   { background: #6B1515; border: 1px solid #B91C1C; color: #FECACA; min-width: 80px; }
+.n-qaok     { background: #14532D; border: 1px solid #16A34A; color: #86EFAC; min-width: 120px; }
+.n-commit   { background: #3A2200; border: 2px dashed #D97706; color: #FDE68A; min-width: 136px; }
+.n-hotfix-tag { background: #7F1D1D; border: 1px solid #DC2626; color: #FCA5A5; min-width: 110px; }
+
+/* Origin bubble */
+.origin {
+width: 54px; height: 54px;
+border-radius: 50%;
+display: flex; align-items: center; justify-content: center;
+font-family: var(–font-mono);
+font-size: 11px;
+font-weight: 700;
+flex-shrink: 0;
+letter-spacing: 0.3px;
+}
+.origin.feature { background: var(–feature); color: white; box-shadow: 0 0 0 3px rgba(37,99,235,0.3); }
+.origin.master  { background: var(–master);  color: white; box-shadow: 0 0 0 3px rgba(22,163,74,0.3); }
+.origin.hotfix  { background: var(–hotfix);  color: white; box-shadow: 0 0 0 3px rgba(220,38,38,0.3); }
+
+/* ── Sub-flow box (dashed outline group) ──── */
+.sub-flow {
+border: 1.5px dashed rgba(255,255,255,0.18);
+border-radius: 10px;
+padding: 12px 16px;
+display: flex;
+flex-direction: column;
+gap: 10px;
+}
+.sub-flow.release-triggered { border-color: #7C3AED; background: rgba(109,40,217,0.06); }
+.sub-flow.hotfix-release    { border-color: #DC2626; background: rgba(220,38,38,0.06); }
+
+.sub-flow-title {
+font-size: 10px;
+font-family: var(–font-mono);
+font-weight: 600;
+letter-spacing: 1px;
+text-transform: uppercase;
+margin-bottom: 2px;
+display: flex;
+align-items: center;
+gap: 6px;
+}
+.sub-flow-title.release-col { color: #A78BFA; }
+.sub-flow-title.hotfix-col  { color: #FCA5A5; }
+
+/* ── Deploy grid (UAT / PROD / DR) ─────────── */
+.deploy-grid {
+display: grid;
+grid-template-columns: repeat(3, auto);
+grid-template-rows: auto auto;
+gap: 8px 12px;
+align-items: start;
+}
+.deploy-grid .node { min-width: 88px; }
+
+/* ── Vertical connector ─────────────────────── */
+.v-connector {
+display: flex;
+justify-content: flex-start;
+padding-left: 30px;
+margin: -4px 0;
+}
+.v-connector svg { display: block; }
+
+/* ── Divider ─────────────────────────────────── */
+.lane-divider {
+height: 1px;
+background: linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent);
+margin: 0;
+}
+
+/* ── Cross-lane trigger note ─────────────────── */
+.trigger-note {
+text-align: center;
+font-family: var(–font-mono);
+font-size: 10px;
+color: var(–text-muted);
+letter-spacing: 0.5px;
+padding: 4px 0;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 8px;
+}
+.trigger-note::before,
+.trigger-note::after {
+content: ‘’;
+flex: 1;
+max-width: 200px;
+height: 1px;
+background: linear-gradient(to right, transparent, rgba(255,255,255,0.1));
+}
+.trigger-note::after { transform: scaleX(-1); }
+
+/* ── Color bar bottom legend ─────────────────── */
+.bottom-legend {
+display: flex;
+gap: 18px;
+justify-content: center;
+margin-top: 28px;
+flex-wrap: wrap;
+}
+.bl-item {
+display: flex;
+align-items: center;
+gap: 6px;
+font-size: 10.5px;
+font-family: var(–font-mono);
+color: var(–text-dim);
+}
+.bl-swatch {
+width: 28px; height: 5px;
+border-radius: 99px;
+}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes fadeUp {
+from { opacity: 0; transform: translateY(14px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+.lane { animation: fadeUp 0.5s ease both; }
+.lane:nth-child(1) { animation-delay: 0.05s; }
+.lane:nth-child(2) { animation-delay: 0.12s; }
+.lane:nth-child(3) { animation-delay: 0.19s; }
+
+/* ── Responsive ──────────────────────────────── */
+@media (max-width: 900px) {
+body { padding: 20px 12px 40px; }
+.flow-row { flex-wrap: wrap; gap: 6px; }
+.node .label { font-size: 11px; }
+.node .sub   { font-size: 9px; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- ── HEADER ───────────────────────────────────── -->
+
+<div class="page-header">
+  <div class="eyebrow">GitLab 2.0 — DSO Platform</div>
+  <h1>Full Pipeline Architecture — <span>Branch × Environment Flow</span></h1>
+</div>
+
+<!-- ── LEGEND ───────────────────────────────────── -->
+
+<div class="legend">
+  <div class="legend-item"><div class="legend-sq" style="background:#1D4ED8"></div>CI Pipeline (Build · Test · Security · Publish)</div>
+  <div class="legend-item"><div class="legend-sq" style="background:#1E40AF"></div>Build Image + Aqua Scan</div>
+  <div class="legend-item"><div class="legend-sq" style="background:#7C3AED"></div>Snapshot Registry (Dev / QA)</div>
+  <div class="legend-item"><div class="legend-sq" style="background:#6D28D9"></div>Release Pipeline / Registry (UAT / PROD)</div>
+  <div class="legend-item"><div class="legend-dashed"></div>Optional / Manual Step</div>
+</div>
+
+<!-- ── DIAGRAM ──────────────────────────────────── -->
+
+<div class="diagram">
+
+  <!-- ══ FEATURE LANE ══════════════════════════════ -->
+
+  <div class="lane">
+    <div class="lane-label feature">Feature</div>
+    <div class="lane-body feature">
+
+```
+  <!-- Row 1: main pipeline -->
+  <div class="flow-row">
+    <div class="origin feature">feat<br/>/*</div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#60A5FA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#60A5FA"/></svg></div>
+    <div class="node n-ci"><div class="icon">⚙</div><div class="label">CI Pipeline</div><div class="sub">Build · Test · Security · Publish</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#60A5FA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#60A5FA"/></svg></div>
+    <div class="node n-build"><div class="icon">🐳</div><div class="label">Build Image</div><div class="sub">+ Aqua Scan</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#60A5FA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#60A5FA"/></svg></div>
+    <div class="node n-art"><div class="icon">📦</div><div class="label">Push to Artifactory</div><div class="sub">Image + Package Registry</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#60A5FA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#60A5FA"/></svg></div>
+    <div class="node n-dev"><div class="icon">🚀</div><div class="label">Deploy OpenShift</div><div class="sub">DEV Environment</div></div>
+  </div>
+
+  <!-- Row 2: MR flow (indent) -->
+  <div class="flow-row" style="padding-left:60px;">
+    <div class="arrow dashed"><svg width="38" height="18"><line x1="0" y1="9" x2="32" y2="9" stroke="#94A3B8" stroke-width="1.5" stroke-dasharray="4 3"/><polygon points="30,5 38,9 30,13" fill="#94A3B8"/></svg></div>
+    <div class="node n-mr"><div class="icon">🔀</div><div class="label">Raise MR</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#60A5FA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#60A5FA"/></svg></div>
+    <div class="node n-review"><div class="icon">👁</div><div class="label">Review &amp; Approve</div><div class="sub">Peer Code Review</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-approved"><div class="icon">✅</div><div class="label">MR Approved</div><div class="sub">Merged to master</div></div>
+    <div style="margin-left:20px; padding: 6px 14px; border: 1.5px dashed #D97706; border-radius:6px; display:flex; align-items:center; gap:6px;">
+      <span style="font-size:10px; font-family:var(--font-mono); color:#FDE68A;">⚠ Committer ≠ Approver</span>
+    </div>
+  </div>
+
+</div>
+```
+
+  </div>
+
+  <div class="trigger-note">↓ MR Approved triggers master pipeline</div>
+
+  <!-- ══ MASTER LANE ════════════════════════════════ -->
+
+  <div class="lane">
+    <div class="lane-label master">Master</div>
+    <div class="lane-body master">
+
+```
+  <!-- Row 1: CI → QA deploy -->
+  <div class="flow-row">
+    <div class="origin master" style="font-size:10px;">master<br/>auto</div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-ci"><div class="icon">⚙</div><div class="label">CI Pipeline</div><div class="sub">Build · Test · Security · Publish</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-build"><div class="icon">🐳</div><div class="label">Build Image</div><div class="sub">+ Aqua Scan</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-snap"><div class="icon">🗂</div><div class="label">Push Snapshot</div><div class="sub">Registry · Tag: commit SHA</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-dev" style="background:#0F3A32;border-color:#059669;"><div class="icon">🚀</div><div class="label">Deploy OpenShift</div><div class="sub">QA Environment</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+    <div class="node n-qaok"><div class="icon">✅</div><div class="label">QA Sign-off</div><div class="sub">QA Team Certified</div></div>
+  </div>
+
+  <!-- Row 2: Release pipeline (dashed box) -->
+  <div class="sub-flow release-triggered">
+    <div class="sub-flow-title release-col">🔖 Release Pipeline — triggered after QA Sign-off</div>
+    <div class="flow-row">
+      <div class="node n-tag"><div class="icon">🏷</div><div class="label">Create Release Tag</div></div>
+      <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#A78BFA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#A78BFA"/></svg></div>
+      <div class="node n-promote"><div class="icon">⬆</div><div class="label">Promote Snapshot→Release</div></div>
+      <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#A78BFA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#A78BFA"/></svg></div>
+      <div class="node n-vbump"><div class="icon">📝</div><div class="label">Version Bump MR</div></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Deploy grid -->
+  <div class="flow-row" style="gap:12px; align-items:start;">
+    <div class="node n-tag" style="min-width:110px;"><div class="icon">🚀</div><div class="label">Release Tag</div><div class="sub">Triggers Deployment</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#A78BFA" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#A78BFA"/></svg></div>
+
+    <!-- UAT col -->
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
+      <div class="node n-uat"><div class="icon">🧪</div><div class="label">UAT</div><div class="sub">User Acceptance</div></div>
+      <div class="node n-uatdr" style="opacity:0.8;"><div class="label">UAT-DR</div></div>
+    </div>
+
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCD34D" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCD34D"/></svg></div>
+
+    <!-- CAB -->
+    <div class="node n-cab"><div class="icon">📋</div><div class="label">CAB Approval</div><div class="sub">Change Advisory Board</div></div>
+
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+
+    <!-- PROD col -->
+    <div style="display:flex;flex-direction:column;gap:8px;align-items:center;">
+      <div class="node n-prod"><div class="icon">🏭</div><div class="label">PROD</div><div class="sub">Production</div></div>
+      <div class="node n-proddr" style="opacity:0.8;"><div class="label">PROD-DR</div></div>
+    </div>
+  </div>
+
+</div>
+```
+
+  </div>
+
+  <div class="trigger-note">↓ Hotfix branch created from tag</div>
+
+  <!-- ══ HOTFIX LANE ════════════════════════════════ -->
+
+  <div class="lane">
+    <div class="lane-label hotfix">Hotfix</div>
+    <div class="lane-body hotfix">
+
+```
+  <!-- Row 1: CI → DEV / QA -->
+  <div class="flow-row">
+    <div class="origin hotfix" style="font-size:10px;">hotfix<br/>tag</div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-ci"><div class="icon">⚙</div><div class="label">CI Pipeline</div><div class="sub">Build · Test · Security · Publish</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-build"><div class="icon">🐳</div><div class="label">Build Image</div><div class="sub">+ Aqua Scan</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-snap"><div class="icon">🗂</div><div class="label">Push Snapshot</div><div class="sub">Registry · Tag: commit SHA</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-dev"><div class="icon">🔧</div><div class="label">Deploy DEV</div><div class="sub">Validate Fix</div></div>
+    <div class="arrow dashed"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCD34D" stroke-width="1.5" stroke-dasharray="4 3"/><polygon points="20,5 28,9 20,13" fill="#FCD34D"/></svg></div>
+    <div class="node n-qa" style="border-style:dashed;"><div class="icon">🔍</div><div class="label">Deploy QA</div><div class="sub">Optional · Smoke Test</div></div>
+  </div>
+
+  <!-- Row 2: Hotfix release pipeline -->
+  <div class="sub-flow hotfix-release">
+    <div class="sub-flow-title hotfix-col">🔥 Hotfix Release Pipeline</div>
+    <div class="flow-row">
+      <div class="node n-hotfix-tag"><div class="icon">🏷</div><div class="label">Create Hotfix Tag</div></div>
+      <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+      <div class="node n-promote"><div class="icon">⬆</div><div class="label">Promote Snapshot→Release</div></div>
+      <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#4ADE80" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#4ADE80"/></svg></div>
+      <div class="node n-approved"><div class="icon">🔀</div><div class="label">Merge to master</div></div>
+    </div>
+  </div>
+
+  <!-- Row 3: Hotfix deploy to UAT / PROD / DR -->
+  <div class="flow-row" style="gap:12px;">
+    <div class="node n-uat"><div class="icon">🧪</div><div class="label">UAT</div><div class="sub">Smoke Test</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-prod"><div class="icon">🏭</div><div class="label">PROD</div><div class="sub">Hotfix Deploy</div></div>
+    <div class="arrow"><svg width="28" height="18"><line x1="0" y1="9" x2="22" y2="9" stroke="#FCA5A5" stroke-width="1.5"/><polygon points="20,5 28,9 20,13" fill="#FCA5A5"/></svg></div>
+    <div class="node n-proddr"><div class="icon">🛡</div><div class="label">PROD-DR</div><div class="sub">DR Sync</div></div>
+  </div>
+
+</div>
+```
+
+  </div>
+
+</div>
+
+<!-- ── BOTTOM LEGEND ─────────────────────────────── -->
+
+<div class="bottom-legend">
+  <div class="bl-item"><div class="bl-swatch" style="background:#059669"></div>DEV Deploy</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#D97706"></div>QA / Gate</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#2563EB"></div>UAT</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#DC2626"></div>PROD</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#9F1239"></div>PROD-DR</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#7C3AED"></div>Snapshot / Release</div>
+  <div class="bl-item"><div class="bl-swatch" style="background:#0D9488"></div>Artifactory</div>
+</div>
+
+</body>
+</html>
