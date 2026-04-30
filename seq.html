@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pipeline — Sequence & Flowchart</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+–bg:       #060B18;
+–surface:  #0C1220;
+–panel:    #101828;
+–glass:    rgba(255,255,255,0.04);
+–border:   rgba(255,255,255,0.07);
+
+–blue:     #3B82F6;
+–blue-dim: #1D3F7A;
+–green:    #22C55E;
+–green-dim:#0F3D20;
+–red:      #EF4444;
+–red-dim:  #4A1010;
+–purple:   #A855F7;
+–purple-dim:#3B1460;
+–amber:    #F59E0B;
+–amber-dim:#3D2500;
+–teal:     #14B8A6;
+–teal-dim: #0A2E2A;
+–slate:    #64748B;
+
+–text:     #F1F5F9;
+–text-2:   #94A3B8;
+–text-3:   #475569;
+
+–mono: ‘JetBrains Mono’, monospace;
+–sans: ‘Sora’, sans-serif;
+}
+
+body {
+background: var(–bg);
+color: var(–text);
+font-family: var(–sans);
+min-height: 100vh;
+padding: 0 0 80px;
+overflow-x: hidden;
+}
+
+/* ── TAB NAV ─────────────────────────────── */
+.tabs-wrapper {
+position: sticky;
+top: 0;
+z-index: 100;
+background: rgba(6,11,24,0.92);
+backdrop-filter: blur(16px);
+border-bottom: 1px solid var(–border);
+padding: 0 40px;
+display: flex;
+align-items: center;
+gap: 0;
+}
+.page-title {
+font-family: var(–mono);
+font-size: 11px;
+letter-spacing: 2px;
+color: var(–text-3);
+text-transform: uppercase;
+padding: 18px 0;
+margin-right: 32px;
+white-space: nowrap;
+}
+.tabs {
+display: flex;
+gap: 0;
+}
+.tab {
+padding: 18px 24px;
+font-family: var(–mono);
+font-size: 12px;
+font-weight: 500;
+color: var(–text-3);
+cursor: pointer;
+border-bottom: 2px solid transparent;
+transition: all 0.2s;
+letter-spacing: 0.5px;
+user-select: none;
+}
+.tab:hover { color: var(–text-2); }
+.tab.active { color: var(–blue); border-bottom-color: var(–blue); }
+
+/* ── SECTION WRAPPER ─────────────────────── */
+.section { display: none; padding: 48px 40px 0; }
+.section.active { display: block; }
+
+.section-header {
+margin-bottom: 40px;
+}
+.section-header .eyebrow {
+font-family: var(–mono);
+font-size: 10px;
+letter-spacing: 3px;
+color: var(–text-3);
+text-transform: uppercase;
+margin-bottom: 8px;
+}
+.section-header h2 {
+font-size: 26px;
+font-weight: 700;
+letter-spacing: -0.5px;
+color: var(–text);
+}
+.section-header h2 em {
+font-style: normal;
+color: var(–blue);
+}
+
+/* ═══════════════════════════════════════════
+SEQUENCE DIAGRAM
+═══════════════════════════════════════════ */
+.seq-scroll {
+overflow-x: auto;
+padding-bottom: 24px;
+}
+.seq-diagram {
+min-width: 1100px;
+position: relative;
+}
+
+/* Actors row */
+.actors {
+display: grid;
+grid-template-columns: 80px repeat(9, 1fr);
+gap: 0;
+margin-bottom: 0;
+}
+.actor-spacer { width: 80px; }
+.actor {
+display: flex;
+flex-direction: column;
+align-items: center;
+gap: 6px;
+padding: 0 4px;
+}
+.actor-box {
+padding: 8px 10px;
+border-radius: 8px;
+font-family: var(–mono);
+font-size: 10px;
+font-weight: 600;
+text-align: center;
+line-height: 1.4;
+width: 100%;
+border: 1px solid;
+}
+.actor-line {
+width: 2px;
+background: linear-gradient(to bottom, currentColor, transparent);
+opacity: 0.25;
+flex: 1;
+min-height: 20px;
+}
+
+/* Lifeline area */
+.lifelines {
+display: grid;
+grid-template-columns: 80px repeat(9, 1fr);
+position: relative;
+}
+.lifeline-col {
+display: flex;
+justify-content: center;
+position: relative;
+}
+.lifeline-line {
+width: 2px;
+border-left: 2px dashed;
+opacity: 0.15;
+position: absolute;
+top: 0;
+bottom: 0;
+}
+
+/* Message rows */
+.seq-body {
+position: relative;
+}
+.seq-group {
+margin-bottom: 6px;
+}
+.seq-group-label {
+font-family: var(–mono);
+font-size: 9px;
+letter-spacing: 2px;
+text-transform: uppercase;
+padding: 10px 0 6px 80px;
+color: var(–text-3);
+border-top: 1px solid var(–border);
+margin-top: 6px;
+display: flex;
+align-items: center;
+gap: 8px;
+}
+.seq-group-label::after {
+content: ‘’;
+flex: 1;
+height: 1px;
+background: var(–border);
+}
+
+.seq-msg {
+display: grid;
+grid-template-columns: 80px repeat(9, 1fr);
+align-items: center;
+min-height: 44px;
+position: relative;
+}
+.seq-label-cell {
+font-family: var(–mono);
+font-size: 9px;
+color: var(–text-3);
+padding-right: 8px;
+text-align: right;
+line-height: 1.3;
+padding-top: 4px;
+}
+.seq-arrow-span {
+position: relative;
+display: flex;
+align-items: center;
+height: 44px;
+}
+/* spans multiple columns via JS grid placement */
+.seq-arrow-span .arrow-line {
+position: absolute;
+left: 0; right: 0;
+top: 50%;
+transform: translateY(-50%);
+height: 2px;
+}
+.seq-arrow-span .arrow-tip {
+position: absolute;
+right: -1px;
+top: 50%;
+transform: translateY(-50%);
+width: 0; height: 0;
+}
+.seq-arrow-span .msg-text {
+position: absolute;
+top: 4px;
+left: 8px;
+font-family: var(–mono);
+font-size: 9.5px;
+white-space: nowrap;
+font-weight: 500;
+}
+.seq-arrow-span.dashed .arrow-line {
+background: repeating-linear-gradient(to right, currentColor 0, currentColor 5px, transparent 5px, transparent 10px);
+}
+.seq-activation {
+position: absolute;
+width: 10px;
+border-radius: 3px;
+top: 8px; bottom: 8px;
+left: 50%;
+transform: translateX(-50%);
+opacity: 0.6;
+}
+
+/* ═══════════════════════════════════════════
+FLOWCHART
+═══════════════════════════════════════════ */
+.flow-tabs {
+display: flex;
+gap: 8px;
+margin-bottom: 32px;
+}
+.flow-tab {
+padding: 8px 20px;
+border-radius: 6px;
+font-family: var(–mono);
+font-size: 11px;
+font-weight: 600;
+cursor: pointer;
+border: 1px solid var(–border);
+color: var(–text-3);
+background: var(–glass);
+transition: all 0.2s;
+letter-spacing: 0.5px;
+}
+.flow-tab:hover { color: var(–text-2); border-color: var(–text-3); }
+.flow-tab.active.feat  { background: var(–blue-dim); border-color: var(–blue); color: #93C5FD; }
+.flow-tab.active.mast  { background: var(–green-dim); border-color: var(–green); color: #86EFAC; }
+.flow-tab.active.hfix  { background: var(–red-dim); border-color: var(–red); color: #FCA5A5; }
+
+.flow-canvas { display: none; }
+.flow-canvas.active { display: flex; flex-direction: column; align-items: flex-start; gap: 0; }
+
+/* SVG flowchart */
+.flow-svg-wrap {
+width: 100%;
+overflow-x: auto;
+padding-bottom: 16px;
+}
+svg.flowchart {
+display: block;
+font-family: var(–mono);
+}
+
+/* Animate in */
+@keyframes fadeSlideIn {
+from { opacity: 0; transform: translateY(20px); }
+to   { opacity: 1; transform: translateY(0); }
+}
+.seq-group { animation: fadeSlideIn 0.4s ease both; }
+.seq-group:nth-child(1) { animation-delay: 0.05s; }
+.seq-group:nth-child(2) { animation-delay: 0.1s; }
+.seq-group:nth-child(3) { animation-delay: 0.15s; }
+.seq-group:nth-child(4) { animation-delay: 0.2s; }
+.flow-canvas { animation: fadeSlideIn 0.35s ease both; }
+</style>
+
+</head>
+<body>
+
+<!-- ── STICKY TABS ───────────────────────────────── -->
+
+<div class="tabs-wrapper">
+  <div class="page-title">Pipeline Architecture</div>
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('seq')">Sequence Diagram</div>
+    <div class="tab" onclick="switchTab('flow')">Flowchart</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     SEQUENCE DIAGRAM SECTION
+═══════════════════════════════════════════════ -->
+
+<div class="section active" id="sec-seq">
+  <div class="section-header">
+    <div class="eyebrow">Actor Interaction View</div>
+    <h2>Pipeline <em>Sequence Diagram</em></h2>
+  </div>
+
+  <div class="seq-scroll">
+  <svg id="seq-svg" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace;" width="1200" height="1020"></svg>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     FLOWCHART SECTION
+═══════════════════════════════════════════════ -->
+
+<div class="section" id="sec-flow">
+  <div class="section-header">
+    <div class="eyebrow">Step-by-Step Process View</div>
+    <h2>Pipeline <em>Flowchart</em></h2>
+  </div>
+
+  <div class="flow-tabs">
+    <div class="flow-tab active feat" onclick="switchFlow('feat')">Feature Branch</div>
+    <div class="flow-tab mast" onclick="switchFlow('mast')">Master Branch</div>
+    <div class="flow-tab hfix" onclick="switchFlow('hfix')">Hotfix Branch</div>
+  </div>
+
+  <div class="flow-svg-wrap">
+    <svg id="flow-svg" xmlns="http://www.w3.org/2000/svg" style="display:block;font-family:'JetBrains Mono',monospace;"></svg>
+  </div>
+</div>
+
+<script>
+/* ── TAB SWITCHING ─────────────────────────── */
+function switchTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i) => el.classList.toggle('active', ['seq','flow'][i]===t));
+  document.getElementById('sec-seq').classList.toggle('active', t==='seq');
+  document.getElementById('sec-flow').classList.toggle('active', t==='flow');
+}
+function switchFlow(f) {
+  document.querySelectorAll('.flow-tab').forEach(el => el.classList.remove('active'));
+  document.querySelector(`.flow-tab.${f}`).classList.add('active');
+  renderFlowchart(f);
+}
+
+/* ════════════════════════════════════════════
+   SEQUENCE DIAGRAM (SVG hand-drawn)
+════════════════════════════════════════════ */
+(function(){
+  const svg = document.getElementById('seq-svg');
+  const W = 1200, PAD_LEFT = 10;
+
+  // Actors
+  const actors = [
+    { id:'dev',   label:'Developer',      color:'#3B82F6', bg:'#1D3F7A' },
+    { id:'gl',    label:'GitLab\nCI/CD',  color:'#3B82F6', bg:'#1D3F7A' },
+    { id:'aqua',  label:'Aqua\nScan',     color:'#A855F7', bg:'#3B1460' },
+    { id:'art',   label:'Artifactory',    color:'#14B8A6', bg:'#0A2E2A' },
+    { id:'os',    label:'OpenShift',      color:'#22C55E', bg:'#0F3D20' },
+    { id:'qa',    label:'QA Team',        color:'#F59E0B', bg:'#3D2500' },
+    { id:'uat',   label:'UAT Env',        color:'#3B82F6', bg:'#1D3F7A' },
+    { id:'cab',   label:'CAB /\nApprover',color:'#F59E0B', bg:'#3D2500' },
+    { id:'prod',  label:'PROD',           color:'#EF4444', bg:'#4A1010' },
+  ];
+
+  const N = actors.length;
+  const COL_W = (W - PAD_LEFT - 60) / N;
+  const ACT_Y = 20;
+  const ACT_H = 50;
+  const BODY_START = ACT_Y + ACT_H + 16;
+  const COL_X = i => PAD_LEFT + 60 + i * COL_W + COL_W/2;
+
+  // Messages: [from_idx, to_idx, label, color, dashed, note]
+  // Groups
+  const groups = [
+    {
+      label: '① FEATURE BRANCH — CI → DEV Deploy → MR',
+      color: '#3B82F6',
+      msgs: [
+        [0,1,'git push feature/*','#3B82F6',false],
+        [1,1,'Run CI Pipeline\n(Build·Test·Security·Publish)','#3B82F6',false,true],
+        [1,2,'Trigger Aqua Scan','#A855F7',false],
+        [2,1,'Scan Result: PASS','#A855F7',true],
+        [1,3,'Push Image to Artifactory','#14B8A6',false],
+        [3,1,'Image Stored','#14B8A6',true],
+        [1,4,'Deploy to DEV (OpenShift)','#22C55E',false],
+        [4,0,'DEV URL Ready','#22C55E',true],
+        [0,1,'Raise Merge Request','#64748B',false],
+        [1,7,'Request Peer Review','#64748B',false],
+        [7,1,'MR Approved\n(Committer ≠ Approver)','#22C55E',true],
+        [1,1,'Merge to master','#22C55E',false,true],
+      ]
+    },
+    {
+      label: '② MASTER BRANCH — CI → QA Deploy → Release Pipeline',
+      color: '#22C55E',
+      msgs: [
+        [1,1,'Auto-trigger master pipeline','#22C55E',false,true],
+        [1,2,'Trigger Aqua Scan','#A855F7',false],
+        [2,1,'Scan Result: PASS','#A855F7',true],
+        [1,3,'Push Snapshot (tag: commit SHA)','#A855F7',false],
+        [3,1,'Snapshot Stored','#A855F7',true],
+        [1,4,'Deploy to QA (OpenShift)','#22C55E',false],
+        [4,5,'QA Environment Ready','#22C55E',true],
+        [5,1,'QA Sign-off ✓ Certified','#22C55E',true],
+        [1,1,'Create Release Tag','#A855F7',false,true],
+        [1,3,'Promote Snapshot → Release','#A855F7',false],
+        [1,1,'Version Bump MR','#3B82F6',false,true],
+        [1,6,'Deploy to UAT','#3B82F6',false],
+        [6,7,'UAT Acceptance Test','#3B82F6',false],
+        [7,1,'CAB Approved','#F59E0B',true],
+        [1,8,'Deploy to PROD','#EF4444',false],
+        [8,1,'PROD-DR Sync','#EF4444',true],
+      ]
+    },
+    {
+      label: '③ HOTFIX BRANCH — Fix → Validate → Hotfix Release',
+      color: '#EF4444',
+      msgs: [
+        [0,1,'git push hotfix (from tag)','#EF4444',false],
+        [1,2,'Trigger Aqua Scan','#A855F7',false],
+        [2,1,'Scan Result: PASS','#A855F7',true],
+        [1,3,'Push Snapshot (SHA)','#A855F7',false],
+        [1,4,'Deploy DEV — Validate Fix','#22C55E',false],
+        [4,1,'Fix Validated','#22C55E',true],
+        [1,4,'Deploy QA (Optional / Smoke)','#F59E0B',true],
+        [1,1,'Create Hotfix Tag','#EF4444',false,true],
+        [1,3,'Promote Snapshot → Release','#A855F7',false],
+        [1,1,'Merge to master','#22C55E',false,true],
+        [1,6,'UAT Smoke Test','#3B82F6',false],
+        [1,8,'Hotfix Deploy PROD','#EF4444',false],
+        [8,1,'PROD-DR Sync','#EF4444',true],
+      ]
+    }
+  ];
+
+  // Calculate total height
+  let totalRows = 0;
+  groups.forEach(g => totalRows += g.msgs.length + 2);
+  const ROW_H = 42;
+  const TOTAL_H = BODY_START + totalRows * ROW_H + 40;
+  svg.setAttribute('height', TOTAL_H);
+  svg.setAttribute('viewBox', `0 0 ${W} ${TOTAL_H}`);
+
+  function el(tag, attrs={}, text='') {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+    if (text) e.textContent = text;
+    return e;
+  }
+
+  function rect(x,y,w,h,rx,fill,stroke,sw=1) {
+    return el('rect',{x,y,width:w,height:h,rx,fill,stroke,'stroke-width':sw});
+  }
+  function text(x,y,t,size,fill,anchor='middle',weight='400') {
+    const e = el('text',{x,y,'font-size':size,fill,'text-anchor':anchor,'font-weight':weight,'font-family':"'JetBrains Mono',monospace"});
+    e.textContent = t;
+    return e;
+  }
+  function multilineText(x, y, lines, size, fill, anchor='middle', weight='400', lineH=13) {
+    const g = el('g');
+    lines.forEach((line, i) => {
+      g.appendChild(text(x, y + i*lineH, line, size, fill, anchor, weight));
+    });
+    return g;
+  }
+  function arrow(x1,y1,x2,y2,color,dashed=false,label='',retArrow=false) {
+    const g = el('g');
+    const len = Math.abs(x2-x1);
+    if (dashed) {
+      g.appendChild(el('line',{x1,y1,x2,y2,stroke:color,'stroke-width':'1.5','stroke-dasharray':'5,3',opacity:'0.7'}));
+    } else {
+      g.appendChild(el('line',{x1,y1,x2,y2,stroke:color,'stroke-width':'1.8'}));
+    }
+    // Arrowhead
+    const dir = x2 > x1 ? 1 : -1;
+    const ax = x2, ay = y2;
+    const tipPath = `M${ax},${ay} L${ax - dir*9},${ay-5} L${ax - dir*9},${ay+5} Z`;
+    g.appendChild(el('path',{d:tipPath,fill:color,opacity: dashed ? '0.7' : '1'}));
+    // Label
+    if (label) {
+      const lx = (x1+x2)/2;
+      const ly = y1 - 5;
+      const lines = label.split('\n');
+      lines.forEach((ln, i) => {
+        const t2 = text(lx, ly - (lines.length-1-i)*11, ln, 9, color, 'middle', '500');
+        g.appendChild(t2);
+      });
+    }
+    return g;
+  }
+
+  // Background
+  svg.appendChild(rect(0,0,W,TOTAL_H,0,'#060B18','none'));
+
+  // ── Draw actors ──────────────────────────────
+  actors.forEach((a, i) => {
+    const x = COL_X(i);
+    const bw = COL_W - 16;
+    const bx = x - bw/2;
+    svg.appendChild(rect(bx, ACT_Y, bw, ACT_H, 8, a.bg, a.color, 1.5));
+    const lines = a.label.split('\n');
+    lines.forEach((ln, li) => {
+      svg.appendChild(text(x, ACT_Y + 18 + li*14, ln, 10.5, '#F1F5F9', 'middle', '600'));
+    });
+    // Lifeline
+    svg.appendChild(el('line',{
+      x1:x,y1:ACT_Y+ACT_H,x2:x,y2:TOTAL_H-20,
+      stroke:a.color,'stroke-width':'1','stroke-dasharray':'4,4',opacity:'0.12'
+    }));
+  });
+
+  // ── Draw messages ────────────────────────────
+  let rowY = BODY_START;
+
+  groups.forEach((g, gi) => {
+    // Group label bar
+    const barY = rowY + 6;
+    svg.appendChild(rect(PAD_LEFT, barY, W - PAD_LEFT*2, 22, 4, 'rgba(255,255,255,0.03)', g.color, 0.5));
+    svg.appendChild(el('line',{x1:PAD_LEFT,y1:barY,x2:PAD_LEFT+4,y2:barY,stroke:g.color,'stroke-width':'3'}));
+    svg.appendChild(text(PAD_LEFT+14, barY+15, g.label, 10, g.color, 'start', '600'));
+    rowY += ROW_H;
+
+    g.msgs.forEach((m, mi) => {
+      const [fi, ti, label, color, dashed, selfCall] = m;
+      const cy = rowY + ROW_H/2;
+      const x1 = COL_X(fi);
+      const x2 = selfCall ? COL_X(fi) : COL_X(ti);
+
+      if (selfCall) {
+        // Self-call loop
+        const rx = x1, ry = cy - 10, rw = 50, rh = 20;
+        svg.appendChild(el('path',{
+          d:`M${rx},${ry} L${rx+rw},${ry} L${rx+rw},${ry+rh} L${rx},${ry+rh}`,
+          fill:'none', stroke:color, 'stroke-width':'1.5', 'stroke-dasharray':dashed?'5,3':'none', opacity: '0.8'
+        }));
+        svg.appendChild(el('polygon',{
+          points:`${rx-6},${ry+rh-5} ${rx},${ry+rh} ${rx-6},${ry+rh+5}`,
+          fill:color, opacity:'0.8'
+        }));
+        const lines = label.split('\n');
+        lines.forEach((ln, li) => {
+          svg.appendChild(text(rx + rw + 8, cy - 4 + li*12, ln, 9, color, 'start', '500'));
+        });
+      } else {
+        svg.appendChild(arrow(x1, cy, x2, cy, color, dashed, label));
+      }
+
+      // Activation box
+      const actX = selfCall ? COL_X(fi) : COL_X(fi === ti ? fi : ti);
+      const acth = ROW_H - 10;
+      svg.appendChild(rect(actX-4, cy - acth/2 + 2, 8, acth-4, 2, color+'30', color+'60', 1));
+
+      rowY += ROW_H;
+    });
+
+    rowY += 8; // gap between groups
+  });
+
+  // Closing actor boxes (bottom)
+  actors.forEach((a, i) => {
+    const x = COL_X(i);
+    const bw = COL_W - 16;
+    const bx = x - bw/2;
+    const by = TOTAL_H - ACT_H - 14;
+    svg.appendChild(rect(bx, by, bw, ACT_H, 8, a.bg, a.color, 1.5));
+    const lines = a.label.split('\n');
+    lines.forEach((ln, li) => {
+      svg.appendChild(text(x, by + 18 + li*14, ln, 10.5, '#F1F5F9', 'middle', '600'));
+    });
+  });
+
+})();
+
+/* ════════════════════════════════════════════
+   FLOWCHART
+════════════════════════════════════════════ */
+const FLOWS = {
+  feat: {
+    color: '#3B82F6',
+    dimColor: '#1D3F7A',
+    title: 'Feature Branch Flow',
+    nodes: [
+      { id:'start',  label:'Developer\nCommits', type:'oval',    color:'#3B82F6', bg:'#1D3F7A' },
+      { id:'ci',     label:'CI Pipeline\nBuild · Test · Security', type:'rect', color:'#3B82F6', bg:'#1B3668' },
+      { id:'aqua',   label:'Aqua Scan\nImage Security', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'gate1',  label:'Scan\nPassed?', type:'diamond', color:'#A855F7', bg:'#3B1460' },
+      { id:'art',    label:'Push to\nArtifactory', type:'rect', color:'#14B8A6', bg:'#0A2E2A' },
+      { id:'dev',    label:'Deploy to DEV\n(OpenShift)', type:'rect', color:'#22C55E', bg:'#0F3D20' },
+      { id:'mr',     label:'Raise\nMerge Request', type:'rect', color:'#64748B', bg:'#1E293B' },
+      { id:'review', label:'Peer Code\nReview', type:'rect', color:'#3B82F6', bg:'#1D3F7A' },
+      { id:'gate2',  label:'MR\nApproved?\n(Committer≠Approver)', type:'diamond', color:'#22C55E', bg:'#0F3D20' },
+      { id:'merge',  label:'Merge to\nmaster', type:'rect', color:'#22C55E', bg:'#0F3D20' },
+      { id:'end',    label:'Triggers\nMaster Pipeline', type:'oval', color:'#22C55E', bg:'#0F3D20' },
+    ],
+    edges: [
+      ['start','ci',''],
+      ['ci','aqua',''],
+      ['aqua','gate1',''],
+      ['gate1','art','PASS'],
+      ['gate1','ci','FAIL (re-run)', true],
+      ['art','dev',''],
+      ['dev','mr',''],
+      ['mr','review',''],
+      ['review','gate2',''],
+      ['gate2','merge','APPROVED'],
+      ['gate2','review','CHANGES\nREQUESTED', true],
+      ['merge','end',''],
+    ]
+  },
+  mast: {
+    color: '#22C55E',
+    dimColor: '#0F3D20',
+    title: 'Master Branch Flow',
+    nodes: [
+      { id:'start',   label:'MR Merged\nto master', type:'oval', color:'#22C55E', bg:'#0F3D20' },
+      { id:'ci',      label:'CI Pipeline\nBuild · Test · Security', type:'rect', color:'#3B82F6', bg:'#1B3668' },
+      { id:'aqua',    label:'Aqua Scan', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'snap',    label:'Push Snapshot\nTag: commit SHA', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'qa',      label:'Deploy to QA\n(OpenShift)', type:'rect', color:'#22C55E', bg:'#0F3D20' },
+      { id:'qagate',  label:'QA\nSign-off?', type:'diamond', color:'#22C55E', bg:'#0F3D20' },
+      { id:'reltag',  label:'Create\nRelease Tag', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'promote', label:'Promote Snapshot\n→ Release', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'vbump',   label:'Version\nBump MR', type:'rect', color:'#3B82F6', bg:'#1D3F7A' },
+      { id:'uat',     label:'Deploy UAT\n+ UAT-DR', type:'rect', color:'#3B82F6', bg:'#1D3F7A' },
+      { id:'cab',     label:'CAB Approval\nChange Advisory Board', type:'diamond', color:'#F59E0B', bg:'#3D2500' },
+      { id:'prod',    label:'Deploy PROD', type:'rect', color:'#EF4444', bg:'#4A1010' },
+      { id:'dr',      label:'PROD-DR\nSync', type:'rect', color:'#9F1239', bg:'#3A0810' },
+      { id:'end',     label:'Release\nComplete', type:'oval', color:'#22C55E', bg:'#0F3D20' },
+    ],
+    edges: [
+      ['start','ci',''],
+      ['ci','aqua',''],
+      ['aqua','snap','PASS'],
+      ['snap','qa',''],
+      ['qa','qagate',''],
+      ['qagate','reltag','QA CERTIFIED'],
+      ['qagate','qa','FAIL', true],
+      ['reltag','promote',''],
+      ['promote','vbump',''],
+      ['vbump','uat',''],
+      ['uat','cab',''],
+      ['cab','prod','APPROVED'],
+      ['cab','uat','ON HOLD', true],
+      ['prod','dr',''],
+      ['dr','end',''],
+    ]
+  },
+  hfix: {
+    color: '#EF4444',
+    dimColor: '#4A1010',
+    title: 'Hotfix Branch Flow',
+    nodes: [
+      { id:'start',   label:'Create Hotfix\nBranch from Tag', type:'oval', color:'#EF4444', bg:'#4A1010' },
+      { id:'ci',      label:'CI Pipeline\nBuild · Test · Security', type:'rect', color:'#3B82F6', bg:'#1B3668' },
+      { id:'aqua',    label:'Aqua Scan', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'snap',    label:'Push Snapshot\nTag: commit SHA', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'dev',     label:'Deploy DEV\nValidate Fix', type:'rect', color:'#22C55E', bg:'#0F3D20' },
+      { id:'devgate', label:'Fix\nValidated?', type:'diamond', color:'#22C55E', bg:'#0F3D20' },
+      { id:'qaopt',   label:'Deploy QA\n(Optional Smoke)', type:'rect', color:'#F59E0B', bg:'#3D2500', dashed:true },
+      { id:'hftag',   label:'Create\nHotfix Tag', type:'rect', color:'#EF4444', bg:'#4A1010' },
+      { id:'promote', label:'Promote Snapshot\n→ Release', type:'rect', color:'#A855F7', bg:'#3B1460' },
+      { id:'merge',   label:'Merge to\nmaster', type:'rect', color:'#22C55E', bg:'#0F3D20' },
+      { id:'uat',     label:'UAT\nSmoke Test', type:'rect', color:'#3B82F6', bg:'#1D3F7A' },
+      { id:'prod',    label:'Deploy PROD\nHotfix', type:'rect', color:'#EF4444', bg:'#4A1010' },
+      { id:'dr',      label:'PROD-DR\nSync', type:'rect', color:'#9F1239', bg:'#3A0810' },
+      { id:'end',     label:'Hotfix\nComplete', type:'oval', color:'#EF4444', bg:'#4A1010' },
+    ],
+    edges: [
+      ['start','ci',''],
+      ['ci','aqua',''],
+      ['aqua','snap','PASS'],
+      ['snap','dev',''],
+      ['dev','devgate',''],
+      ['devgate','qaopt','VALID'],
+      ['devgate','dev','FAIL', true],
+      ['qaopt','hftag',''],
+      ['hftag','promote',''],
+      ['promote','merge',''],
+      ['merge','uat',''],
+      ['uat','prod',''],
+      ['prod','dr',''],
+      ['dr','end',''],
+    ]
+  }
+};
+
+let currentFlow = 'feat';
+function renderFlowchart(flow) {
+  currentFlow = flow;
+  const data = FLOWS[flow];
+  const svg = document.getElementById('flow-svg');
+  svg.innerHTML = '';
+
+  const NW = 180, NH = 52, DW = 180, DH = 64, OW = 160, OH = 44;
+  const HGAP = 220, VGAP = 88;
+  const COLS = 4;
+
+  // Layout: left-to-right columns
+  const nodes = data.nodes;
+  const edges = data.edges;
+  const nodeMap = {};
+  nodes.forEach((n, i) => {
+    const col = Math.floor(i / Math.ceil(nodes.length / COLS));
+    const row = i % Math.ceil(nodes.length / COLS);
+    nodeMap[n.id] = {
+      ...n,
+      x: 60 + col * HGAP,
+      y: 60 + row * VGAP,
+      w: n.type === 'diamond' ? DW : n.type === 'oval' ? OW : NW,
+      h: n.type === 'diamond' ? DH : n.type === 'oval' ? OH : NH,
+    };
+  });
+
+  // Recalculate x/y for a vertical single-column layout for clarity
+  const perCol = Math.ceil(nodes.length / COLS);
+  nodes.forEach((n, i) => {
+    const col = Math.floor(i / perCol);
+    const row = i % perCol;
+    const nd = nodeMap[n.id];
+    nd.x = 80 + col * (NW + 60);
+    nd.y = 60 + row * VGAP;
+  });
+
+  // Compute canvas size
+  let maxX = 0, maxY = 0;
+  Object.values(nodeMap).forEach(n => {
+    maxX = Math.max(maxX, n.x + n.w + 60);
+    maxY = Math.max(maxY, n.y + n.h + 60);
+  });
+
+  svg.setAttribute('width', Math.max(maxX, 960));
+  svg.setAttribute('height', maxY);
+  svg.setAttribute('viewBox', `0 0 ${Math.max(maxX, 960)} ${maxY}`);
+
+  function el(tag, attrs={}) {
+    const e = document.createElementNS('http://www.w3.org/2000/svg', tag);
+    Object.entries(attrs).forEach(([k,v]) => e.setAttribute(k,v));
+    return e;
+  }
+  function txt(x, y, t, size=10, fill='#F1F5F9', anchor='middle', weight='500') {
+    const lines = t.split('\n');
+    const g = el('g');
+    lines.forEach((ln, li) => {
+      const e = el('text', {x, y: y + li*13, 'font-size':size, fill, 'text-anchor':anchor, 'font-weight':weight, 'font-family':"'JetBrains Mono',monospace"});
+      e.textContent = ln;
+      g.appendChild(e);
+    });
+    return g;
+  }
+
+  // BG
+  svg.appendChild(Object.assign(el('rect'), {setAttribute: (k,v) => {}}));
+  const bg = el('rect', {x:0, y:0, width: Math.max(maxX,960), height: maxY, fill:'#060B18'});
+  svg.appendChild(bg);
+
+  // Draw edges first
+  edges.forEach(([fid, tid, label, dashed]) => {
+    const fn = nodeMap[fid];
+    const tn = nodeMap[tid];
+    if (!fn || !tn) return;
+    const fx = fn.x + fn.w/2, fy = fn.y + fn.h;
+    const tx = tn.x + tn.w/2, ty = tn.y;
+
+    const color = dashed ? '#64748B' : data.color;
+    const opacity = dashed ? '0.55' : '0.8';
+
+    let pathD;
+    if (fid === tid) return; // skip self
+    if (fn.x === tn.x) {
+      // same column — straight vertical
+      pathD = `M${fx},${fy} L${tx},${ty}`;
+    } else if (Math.abs(fn.y - tn.y) < 10) {
+      // same row — horizontal
+      pathD = `M${fn.x+fn.w},${fn.y+fn.h/2} L${tn.x},${tn.y+tn.h/2}`;
+    } else {
+      // cross-column: elbow
+      const mx = fx;
+      const my = fy + 18;
+      pathD = `M${fx},${fy} L${mx},${my} L${tx},${my} L${tx},${ty}`;
+    }
+
+    const p = el('path', {
+      d: pathD, fill:'none', stroke: color, 'stroke-width': dashed?'1.5':'2',
+      'stroke-dasharray': dashed?'5,3':'none', opacity,
+      'marker-end': `url(#arr-${flow})`
+    });
+    svg.appendChild(p);
+
+    // Edge label
+    if (label) {
+      const mx = (fx + tx) / 2 + 6;
+      const my2 = (fy + ty) / 2;
+      const lines = label.split('\n');
+      lines.forEach((ln, li) => {
+        const t2 = el('text', {
+          x: mx, y: my2 - 4 + li*11,
+          'font-size':'8.5', fill: color, 'text-anchor':'middle',
+          'font-weight':'600', 'font-family':"'JetBrains Mono',monospace", opacity
+        });
+        t2.textContent = ln;
+        svg.appendChild(t2);
+      });
+    }
+  });
+
+  // Arrow marker def
+  const defs = el('defs');
+  const marker = el('marker', {
+    id:`arr-${flow}`, markerWidth:'8', markerHeight:'6',
+    refX:'7', refY:'3', orient:'auto'
+  });
+  const poly = el('polygon', {points:'0 0, 8 3, 0 6', fill: data.color, opacity:'0.8'});
+  marker.appendChild(poly);
+  defs.appendChild(marker);
+  svg.insertBefore(defs, svg.firstChild);
+
+  // Draw nodes
+  nodes.forEach(n => {
+    const nd = nodeMap[n.id];
+    const cx = nd.x + nd.w/2;
+    const cy = nd.y + nd.h/2;
+
+    if (n.type === 'diamond') {
+      const hw = nd.w/2, hh = nd.h/2;
+      const pts = `${cx},${nd.y} ${nd.x+nd.w},${cy} ${cx},${nd.y+nd.h} ${nd.x},${cy}`;
+      svg.appendChild(el('polygon', {points:pts, fill:n.bg, stroke:n.color, 'stroke-width':'1.8'}));
+      svg.appendChild(txt(cx, nd.y + nd.h/2 - (n.label.split('\n').length-1)*6, n.label, 9, '#F1F5F9', 'middle', '600'));
+    } else if (n.type === 'oval') {
+      svg.appendChild(el('ellipse', {cx, cy, rx:nd.w/2, ry:nd.h/2, fill:n.bg, stroke:n.color, 'stroke-width':'2'}));
+      svg.appendChild(txt(cx, cy - (n.label.split('\n').length-1)*6, n.label, 10, '#F1F5F9', 'middle', '600'));
+    } else {
+      const rx = n.dashed ? 6 : 8;
+      const r = el('rect', {
+        x:nd.x, y:nd.y, width:nd.w, height:nd.h, rx,
+        fill:n.bg, stroke:n.color, 'stroke-width': n.dashed ? '1.5' : '1.8',
+        'stroke-dasharray': n.dashed ? '5,3' : 'none'
+      });
+      svg.appendChild(r);
+      svg.appendChild(txt(cx, cy - (n.label.split('\n').length-1)*6, n.label, 10, '#F1F5F9', 'middle', '600'));
+    }
+  });
+}
+
+// Initial render
+renderFlowchart('feat');
+</script>
+
+</body>
+</html>
