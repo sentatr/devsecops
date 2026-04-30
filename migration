@@ -1,0 +1,260 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 480" width="960" height="480" font-family="'Segoe UI', system-ui, sans-serif">
+  <defs>
+    <!-- Background gradient -->
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0D1B2E"/>
+      <stop offset="100%" stop-color="#0A2540"/>
+    </linearGradient>
+
+```
+<!-- GitLab 1.0 box gradient -->
+<linearGradient id="gl1Grad" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#1C3A5C"/>
+  <stop offset="100%" stop-color="#122B47"/>
+</linearGradient>
+
+<!-- GitLab Dedicated SaaS box gradient -->
+<linearGradient id="gl2Grad" x1="0" y1="0" x2="0" y2="1">
+  <stop offset="0%" stop-color="#103354"/>
+  <stop offset="100%" stop-color="#0B2238"/>
+</linearGradient>
+
+<!-- Congregate pill gradient -->
+<linearGradient id="congGrad" x1="0" y1="0" x2="1" y2="0">
+  <stop offset="0%" stop-color="#1A6BCC"/>
+  <stop offset="100%" stop-color="#1482F0"/>
+</linearGradient>
+
+<!-- Arrow glow -->
+<filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+  <feGaussianBlur stdDeviation="3" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+
+<!-- Soft glow for boxes -->
+<filter id="boxGlow" x="-10%" y="-10%" width="120%" height="120%">
+  <feGaussianBlur stdDeviation="6" result="blur"/>
+  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+</filter>
+
+<!-- Arrow marker -->
+<marker id="arrowBlue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+  <polygon points="0 0, 10 3.5, 0 7" fill="#1A9FFF"/>
+</marker>
+
+<!-- Dashed arrow marker -->
+<marker id="arrowDim" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+  <polygon points="0 0, 10 3.5, 0 7" fill="#3A6A9A"/>
+</marker>
+
+<!-- Clip for rounded boxes -->
+<clipPath id="clip1"><rect x="40" y="80" width="260" height="320" rx="14"/></clipPath>
+<clipPath id="clip2"><rect x="660" y="80" width="260" height="320" rx="14"/></clipPath>
+```
+
+  </defs>
+
+  <!-- Background -->
+
+  <rect width="960" height="480" fill="url(#bg)"/>
+
+  <!-- Subtle grid lines -->
+
+  <g stroke="#FFFFFF" stroke-opacity="0.03" stroke-width="1">
+    <line x1="0" y1="120" x2="960" y2="120"/>
+    <line x1="0" y1="240" x2="960" y2="240"/>
+    <line x1="0" y1="360" x2="960" y2="360"/>
+    <line x1="240" y1="0" x2="240" y2="480"/>
+    <line x1="480" y1="0" x2="480" y2="480"/>
+    <line x1="720" y1="0" x2="720" y2="480"/>
+  </g>
+
+  <!-- ─────────────────────────────────────── -->
+
+  <!-- GITLAB 1.0 BOX (Left) -->
+
+  <!-- ─────────────────────────────────────── -->
+
+  <rect x="40" y="80" width="260" height="320" rx="14" fill="url(#gl1Grad)" stroke="#2A5A8E" stroke-width="1.5"/>
+
+  <!-- AWS badge top -->
+
+  <rect x="40" y="80" width="260" height="42" rx="14" fill="#1A3D60"/>
+  <rect x="40" y="108" width="260" height="14" fill="#1A3D60"/>
+  <text x="170" y="107" text-anchor="middle" font-size="11" font-weight="600" fill="#64A8E0" letter-spacing="1.5">AWS CLOUD</text>
+
+  <!-- GitLab logo icon area -->
+
+  <circle cx="170" cy="162" r="28" fill="#1E4A70" stroke="#2E6AA0" stroke-width="1"/>
+  <!-- Simple GitLab fox icon (simplified) -->
+  <g transform="translate(155,148)" fill="#FC6D26">
+    <path d="M15,28 L15,0 L10,14 L0,14 L5,28 Z" opacity="0.9"/>
+    <path d="M15,28 L15,0 L20,14 L30,14 L25,28 Z" opacity="0.9"/>
+    <path d="M0,14 L15,28 L30,14 Z" opacity="0.7"/>
+    <path d="M10,14 L15,0 L20,14 Z" opacity="0.5"/>
+  </g>
+
+<text x="170" y="207" text-anchor="middle" font-size="15" font-weight="700" fill="#E8F0F8">GitLab 1.0</text>
+<text x="170" y="222" text-anchor="middle" font-size="10" fill="#6A9CC0" letter-spacing="0.5">(Legacy Platform)</text>
+
+  <!-- Divider -->
+
+  <line x1="60" y1="234" x2="280" y2="234" stroke="#2A5A8E" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Items -->
+
+  <g fill="#A8C8E8" font-size="11">
+    <circle cx="72" cy="254" r="3" fill="#4A9AE0"/>
+    <text x="83" y="258">Groups &amp; Projects</text>
+
+```
+<circle cx="72" cy="277" r="3" fill="#4A9AE0"/>
+<text x="83" y="281">Repositories &amp; Branches</text>
+
+<circle cx="72" cy="300" r="3" fill="#4A9AE0"/>
+<text x="83" y="304">Merge Requests</text>
+
+<circle cx="72" cy="323" r="3" fill="#4A9AE0"/>
+<text x="83" y="327">CI/CD Variables</text>
+
+<circle cx="72" cy="346" r="3" fill="#4A9AE0"/>
+<text x="83" y="350">Release Images</text>
+
+<circle cx="72" cy="369" r="3" fill="#4A9AE0"/>
+<text x="83" y="373">Pipelines &amp; Templates</text>
+```
+
+  </g>
+
+  <!-- ─────────────────────────────────────── -->
+
+  <!-- CONGREGATE TOOL (Center) -->
+
+  <!-- ─────────────────────────────────────── -->
+
+  <!-- Top arrow -->
+
+  <line x1="300" y1="190" x2="430" y2="190" stroke="#1A9FFF" stroke-width="2" marker-end="url(#arrowBlue)" filter="url(#glow)" opacity="0.8"/>
+
+  <!-- Bottom arrow -->
+
+  <line x1="300" y1="280" x2="430" y2="280" stroke="#3A6A9A" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowDim)" opacity="0.6"/>
+
+  <!-- Migration data labels on arrows -->
+
+<text x="365" y="182" text-anchor="middle" font-size="9" fill="#4AADFF" letter-spacing="0.3">MIGRATE</text>
+<text x="365" y="292" text-anchor="middle" font-size="9" fill="#4A7AAA" letter-spacing="0.3">VALIDATE</text>
+
+  <!-- Congregate pill -->
+
+  <rect x="390" y="212" width="180" height="48" rx="24" fill="url(#congGrad)" filter="url(#glow)"/>
+  <rect x="390" y="212" width="180" height="48" rx="24" fill="none" stroke="#5ABAFF" stroke-width="1" opacity="0.5"/>
+
+  <!-- Gear icon -->
+
+  <g transform="translate(413,228)" fill="#FFFFFF" opacity="0.9">
+    <circle cx="8" cy="8" r="3.5" fill="none" stroke="#FFFFFF" stroke-width="1.8"/>
+    <g stroke="#FFFFFF" stroke-width="1.8" stroke-linecap="round">
+      <line x1="8" y1="0" x2="8" y2="3"/>
+      <line x1="8" y1="13" x2="8" y2="16"/>
+      <line x1="0" y1="8" x2="3" y2="8"/>
+      <line x1="13" y1="8" x2="16" y2="8"/>
+      <line x1="2.3" y1="2.3" x2="4.5" y2="4.5"/>
+      <line x1="11.5" y1="11.5" x2="13.7" y2="13.7"/>
+      <line x1="13.7" y1="2.3" x2="11.5" y2="4.5"/>
+      <line x1="4.5" y1="11.5" x2="2.3" y2="13.7"/>
+    </g>
+  </g>
+
+<text x="493" y="231" text-anchor="middle" font-size="14" font-weight="700" fill="#FFFFFF">Congregate</text>
+<text x="493" y="248" text-anchor="middle" font-size="10" fill="#C0DEFF" letter-spacing="0.5">Migration Tool</text>
+
+  <!-- Right arrows from Congregate -->
+
+  <line x1="570" y1="190" x2="660" y2="190" stroke="#1A9FFF" stroke-width="2" marker-end="url(#arrowBlue)" filter="url(#glow)" opacity="0.8"/>
+  <line x1="570" y1="280" x2="660" y2="280" stroke="#3A6A9A" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arrowDim)" opacity="0.6"/>
+
+<text x="615" y="182" text-anchor="middle" font-size="9" fill="#4AADFF" letter-spacing="0.3">DELIVER</text>
+<text x="615" y="292" text-anchor="middle" font-size="9" fill="#4A7AAA" letter-spacing="0.3">CONFIRM</text>
+
+  <!-- ─────────────────────────────────────── -->
+
+  <!-- GITLAB DEDICATED SaaS BOX (Right) -->
+
+  <!-- ─────────────────────────────────────── -->
+
+  <rect x="660" y="80" width="260" height="320" rx="14" fill="url(#gl2Grad)" stroke="#1A6BCC" stroke-width="1.5"/>
+
+  <!-- Dedicated SaaS badge top -->
+
+  <rect x="660" y="80" width="260" height="42" rx="14" fill="#0F3A6E"/>
+  <rect x="660" y="108" width="260" height="14" fill="#0F3A6E"/>
+  <text x="790" y="107" text-anchor="middle" font-size="11" font-weight="600" fill="#4AADFF" letter-spacing="1.5">OPENSHIFT DEDICATED</text>
+
+  <!-- GitLab logo icon area -->
+
+  <circle cx="790" cy="162" r="28" fill="#0D2E52" stroke="#1A5AA0" stroke-width="1"/>
+  <g transform="translate(775,148)" fill="#FC6D26">
+    <path d="M15,28 L15,0 L10,14 L0,14 L5,28 Z" opacity="0.9"/>
+    <path d="M15,28 L15,0 L20,14 L30,14 L25,28 Z" opacity="0.9"/>
+    <path d="M0,14 L15,28 L30,14 Z" opacity="0.7"/>
+    <path d="M10,14 L15,0 L20,14 Z" opacity="0.5"/>
+  </g>
+
+  <!-- "NEW" badge -->
+
+  <rect x="818" y="140" width="36" height="16" rx="8" fill="#1A9FFF"/>
+  <text x="836" y="151" text-anchor="middle" font-size="9" font-weight="700" fill="#FFFFFF">NEW</text>
+
+<text x="790" y="207" text-anchor="middle" font-size="15" font-weight="700" fill="#E8F0F8">GitLab 2.0</text>
+<text x="790" y="222" text-anchor="middle" font-size="10" fill="#4A9AE0" letter-spacing="0.5">Dedicated SaaS Platform</text>
+
+  <!-- Divider -->
+
+  <line x1="680" y1="234" x2="900" y2="234" stroke="#1A4A8A" stroke-width="1" stroke-dasharray="3,3"/>
+
+  <!-- Items -->
+
+  <g fill="#A8C8E8" font-size="11">
+    <circle cx="692" cy="254" r="3" fill="#1A9FFF"/>
+    <text x="703" y="258">Groups &amp; Projects ✓</text>
+
+```
+<circle cx="692" cy="277" r="3" fill="#1A9FFF"/>
+<text x="703" y="281">Repositories &amp; History ✓</text>
+
+<circle cx="692" cy="300" r="3" fill="#1A9FFF"/>
+<text x="703" y="304">Merge Requests ✓</text>
+
+<circle cx="692" cy="323" r="3" fill="#1A9FFF"/>
+<text x="703" y="327">CI/CD Variables ✓</text>
+
+<circle cx="692" cy="346" r="3" fill="#1A9FFF"/>
+<text x="703" y="350">Release Images ✓</text>
+
+<circle cx="692" cy="369" r="3" fill="#1A9FFF"/>
+<text x="703" y="373">OpenShift Runners ✓</text>
+```
+
+  </g>
+
+  <!-- ─────────────────────────────────────── -->
+
+  <!-- BOTTOM LABEL -->
+
+  <!-- ─────────────────────────────────────── -->
+
+<text x="480" y="436" text-anchor="middle" font-size="12" fill="#4A7AAA" letter-spacing="1">GitLab Platform Migration  ·  DSO Team</text>
+
+  <!-- Animated dots on arrow (CSS) -->
+
+  <style>
+    @keyframes flow1 { 0%{offset-distance:0%} 100%{offset-distance:100%} }
+    @keyframes flow2 { 0%{offset-distance:0%} 100%{offset-distance:100%} }
+    .dot1 { offset-path: path("M300,190 L430,190"); animation: flow1 1.8s linear infinite; }
+    .dot2 { offset-path: path("M570,190 L660,190"); animation: flow2 1.8s linear infinite 0.4s; }
+  </style>
+
+  <circle class="dot1" cx="0" cy="0" r="3.5" fill="#5ACDFF" opacity="0.9"/>
+  <circle class="dot2" cx="0" cy="0" r="3.5" fill="#5ACDFF" opacity="0.9"/>
+</svg>
