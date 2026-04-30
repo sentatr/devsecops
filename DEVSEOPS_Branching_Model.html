@@ -313,13 +313,13 @@
           <text x="298" y="174" fill="#8B949E" font-size="9" text-anchor="middle">&#9313; Raise MR</text>
 
           <!-- ============================== -->
-          <!-- RELEASE TAG v1.0.0.0 (x=490)  -->
+          <!-- RELEASE TAG v1.0.0 (x=490)  -->
           <!-- ============================== -->
           <line x1="490" y1="118" x2="490" y2="492" stroke="#FFAB40" stroke-width="1.5" stroke-dasharray="3,3"/>
           <polygon points="490,505 505,490 490,475 475,490" fill="#FFAB40" stroke="#0D1117" stroke-width="1.5"/>
           <rect x="460" y="516" width="60" height="20" rx="4" fill="#3D2800"/>
-          <text x="490" y="530" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0.0</text>
-          <text x="490" y="548" fill="#8B949E" font-size="9" text-anchor="middle">Release Tag</text>
+          <text x="490" y="527" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0</text>
+          <text x="490" y="543" fill="#8B949E" font-size="9" text-anchor="middle">Release Tag (master)</text>
 
           <!-- Step annotation 3 -->
           <rect x="437" y="460" width="108" height="16" rx="3" fill="#1C2333"/>
@@ -338,7 +338,7 @@
 
           <!-- Hotfix branch label badge -->
           <rect x="525" y="424" width="165" height="22" rx="4" fill="#3D0A00"/>
-          <text x="608" y="439" fill="#FF6B6B" font-size="10" font-weight="700" text-anchor="middle">hotfix/v1.0.0.1</text>
+          <text x="608" y="439" fill="#FF6B6B" font-size="10" font-weight="700" text-anchor="middle">hotfix/v1.0.0-1</text>
 
           <!-- Step annotation 4 -->
           <rect x="502" y="328" width="125" height="16" rx="3" fill="#1C2333"/>
@@ -352,13 +352,13 @@
           <text x="773" y="217" fill="#8B949E" font-size="9" text-anchor="middle">&#9317; MR &#8594; master</text>
 
           <!-- ============================== -->
-          <!-- HOTFIX TAG v1.0.0.1 (x=700)   -->
+          <!-- HOTFIX TAG v1.0.0-1 (x=700)   -->
           <!-- ============================== -->
           <line x1="700" y1="390" x2="700" y2="492" stroke="#FFAB40" stroke-width="1.5" stroke-dasharray="3,3"/>
           <polygon points="700,505 715,490 700,475 685,490" fill="#FFAB40" stroke="#0D1117" stroke-width="1.5"/>
           <rect x="668" y="516" width="64" height="20" rx="4" fill="#3D2800"/>
-          <text x="700" y="530" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0.1</text>
-          <text x="700" y="548" fill="#8B949E" font-size="9" text-anchor="middle">Hotfix Tag</text>
+          <text x="700" y="527" fill="#FFAB40" font-size="10" font-weight="700" text-anchor="middle">v1.0.0-1</text>
+          <text x="700" y="543" fill="#8B949E" font-size="9" text-anchor="middle">Hotfix Tag (hotfix/*)</text>
 
           <!-- Step annotation 5 -->
           <rect x="644" y="460" width="112" height="16" rx="3" fill="#1C2333"/>
@@ -376,7 +376,7 @@
           <line x1="70" y1="372" x2="102" y2="372" stroke="#FF6B6B" stroke-width="2" stroke-dasharray="5,3"/>
           <text x="110" y="376" fill="#C9D1D9" font-size="10">hotfix/* branch</text>
           <polygon points="86,396 93,388 86,380 79,388" fill="#FFAB40"/>
-          <text x="110" y="393" fill="#C9D1D9" font-size="10">release tag (vX.X.X.X)</text>
+          <text x="110" y="393" fill="#C9D1D9" font-size="10">release tag (vX.X.X / vX.X.X-N)</text>
         </svg>
       </div>
       <p class="diagram-caption">Figure 1 &ndash; DEVSEOPS Enterprise Git Branching Model &middot; DSO Recommended Standard</p>
@@ -403,17 +403,17 @@
         <div class="flow-card">
           <div class="step-num" style="background:#FF8B00;">3</div>
           <h4>Create Release Tag from Master</h4>
-          <p>After MR is merged, create an immutable annotated tag on <span class="tag-inline tag-master">master</span>: <span class="tag-inline tag-release">v1.0.0.0</span>. This marks the production release candidate.</p>
+          <p>After MR is merged, create an immutable annotated tag on <span class="tag-inline tag-master">master</span>: <span class="tag-inline tag-release">v1.0.0</span>. This marks the production release candidate.</p>
         </div>
         <div class="flow-card">
           <div class="step-num" style="background:#DE350B;">4</div>
           <h4>Create Hotfix Branch from Release Tag</h4>
-          <p>For production bugs, branch off the specific <span class="tag-inline tag-release">release tag</span>. Name it <span class="tag-inline tag-hotfix">hotfix/v1.0.0.1</span> and bump the 4th version digit (BUILD).</p>
+          <p>For production bugs, branch off the specific <span class="tag-inline tag-release">release tag</span>. Name it <span class="tag-inline tag-hotfix">hotfix/v1.0.0-1</span> — append a <code style="font-size:11px;background:none;border:none;color:#DE350B;">-N</code> suffix to the base version and bump N.</p>
         </div>
         <div class="flow-card">
           <div class="step-num" style="background:#FF8B00;">5</div>
           <h4>Create Release Tag from Hotfix</h4>
-          <p>Once the hotfix is validated, tag the hotfix branch: <span class="tag-inline tag-release">v1.0.0.1</span>. This becomes the new production release that gets deployed.</p>
+          <p>Once the hotfix is validated, tag the hotfix branch: <span class="tag-inline tag-release">v1.0.0-1</span>. This becomes the new production release that gets deployed.</p>
         </div>
         <div class="flow-card">
           <div class="step-num" style="background:#6554C0;">6</div>
@@ -447,21 +447,21 @@
           </tr>
           <tr>
             <td><span class="tag-inline tag-hotfix">hotfix</span></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v&lt;X.X.X.X&gt;</code></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v1.2.0.1</code></td>
-            <td>Version must match the release tag being patched, with last digit incremented.</td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v&lt;X.X.X&gt;-&lt;N&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">hotfix/v1.2.0-1</code></td>
+            <td>Branch name must match the intended hotfix tag. N increments per fix on the same base version.</td>
           </tr>
           <tr>
             <td><span class="tag-inline tag-release">release tag</span></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;MAJOR.MINOR.PATCH.BUILD&gt;</code></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td>
-            <td>4-part versioning. Always use annotated tags (not lightweight).</td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;MAJOR.MINOR.PATCH&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0</code></td>
+            <td>3-part SemVer. Always use annotated tags (not lightweight).</td>
           </tr>
           <tr>
             <td><span class="tag-inline tag-release">hotfix tag</span></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;X.X.X.BUILD+1&gt;</code></td>
-            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td>
-            <td>Increment the BUILD digit for each hotfix on the same MINOR version.</td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v&lt;X.X.X&gt;-&lt;N&gt;</code></td>
+            <td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0-1</code></td>
+            <td>Append a dash-number suffix for each hotfix on the same base version. Increment N for subsequent hotfixes.</td>
           </tr>
         </tbody>
       </table>
@@ -471,9 +471,9 @@
     <div class="section" id="version">
       <div class="section-title">
         <div class="icon" style="background:#FFF7D6;">&#128290;</div>
-        Version Numbering Scheme (x.x.x.x)
+        Version Numbering Scheme
       </div>
-      <p style="color:var(--text-secondary);margin-bottom:14px;">All releases follow a 4-part version format.</p>
+      <p style="color:var(--text-secondary);margin-bottom:14px;">Normal releases use a 3-part SemVer tag. Hotfix releases append a dash-number suffix.</p>
       <div class="version-box">
         <div class="version-part">
           <div class="version-num" style="color:#0052CC;">1</div>
@@ -481,7 +481,7 @@
         </div>
         <div class="version-dot">.</div>
         <div class="version-part">
-          <div class="version-num" style="color:#36B37E;">2</div>
+          <div class="version-num" style="color:#36B37E;">0</div>
           <div class="version-label">MINOR</div>
         </div>
         <div class="version-dot">.</div>
@@ -489,26 +489,31 @@
           <div class="version-num" style="color:#6554C0;">0</div>
           <div class="version-label">PATCH</div>
         </div>
-        <div class="version-dot">.</div>
-        <div class="version-part">
-          <div class="version-num" style="color:#DE350B;">1</div>
-          <div class="version-label">BUILD/HOTFIX</div>
+        <div class="version-sep"></div>
+        <div style="font-size:13px;color:var(--text-secondary);max-width:160px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;font-family:monospace;color:#8993A4;">v1.0.0</div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-top:4px;">Release Tag</div>
         </div>
         <div class="version-sep"></div>
-        <div style="font-size:13px;color:var(--text-secondary);max-width:320px;">
+        <div style="font-size:13px;color:var(--text-secondary);max-width:160px;text-align:center;">
+          <div style="font-size:22px;font-weight:700;font-family:monospace;color:#DE350B;">v1.0.0<span style="color:#FF8B00;">-1</span></div>
+          <div style="font-size:10px;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-top:4px;">Hotfix Tag</div>
+        </div>
+        <div class="version-sep"></div>
+        <div style="font-size:13px;color:var(--text-secondary);max-width:300px;">
           <strong>MAJOR</strong> &ndash; Breaking changes or architecture overhaul<br>
           <strong>MINOR</strong> &ndash; New features, non-breaking additions<br>
           <strong>PATCH</strong> &ndash; Bug fixes via normal release cycle<br>
-          <strong>BUILD</strong> &ndash; Emergency hotfix increment (starts at 0 for each release)
+          <strong style="color:#FF8B00;">-N</strong> &ndash; Hotfix suffix, increments per fix on the same base version (e.g. -1, -2)
         </div>
       </div>
       <table class="rules-table" style="margin-top:16px;">
         <thead><tr><th>Scenario</th><th>Before</th><th>After</th></tr></thead>
         <tbody>
-          <tr><td>Normal release from master</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.3.0.0</code></td></tr>
-          <tr><td>First hotfix on v1.2.0.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td></tr>
-          <tr><td>Second hotfix on v1.2.0.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.1</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0.2</code></td></tr>
-          <tr><td>Major version release</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.5.0.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v2.0.0.0</code></td></tr>
+          <tr><td>Normal release from master</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.3.0</code></td></tr>
+          <tr><td>First hotfix on v1.2.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0-1</code></td></tr>
+          <tr><td>Second hotfix on v1.2.0</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0-1</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.2.0-2</code></td></tr>
+          <tr><td>Major version release</td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v1.5.0</code></td><td><code style="background:var(--code-bg);padding:2px 5px;border-radius:3px;font-size:12px;">v2.0.0</code></td></tr>
         </tbody>
       </table>
     </div>
@@ -594,21 +599,21 @@
 <span class="cmd">git</span> <span class="flag">pull</span> <span class="value">origin master</span>
 
 <span class="comment"># Create ANNOTATED tag (recommended — includes tagger, date, message)</span>
-<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.0 -m "Release v1.0.0.0 — Initial production release"</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0 -m "Release v1.0.0 — Initial production release"</span>
 
 <span class="comment"># Push specific tag to remote</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0</span>
 
 <span class="comment"># Push ALL local tags at once</span>
 <span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --tags</span>
 
 <span class="comment"># Tag a specific commit by SHA</span>
-<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.0 &lt;commit-sha&gt; -m "Release v1.0.0.0"</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0 &lt;commit-sha&gt; -m "Release v1.0.0"</span>
 
 <span class="comment"># TAG FROM HOTFIX BRANCH ────────────────────────────────────────────</span>
-<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">hotfix/v1.0.0.1</span>
-<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.1 -m "Hotfix v1.0.0.1 — Fix critical null pointer [PROJ-5678]"</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">hotfix/v1.0.0-1</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0-1 -m "Hotfix v1.0.0-1 — Fix critical null pointer [PROJ-5678]"</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0-1</span>
 </pre></div>
 
       <div class="section-sub">&#128269; Tag Listing &amp; Inspection</div>
@@ -621,19 +626,19 @@
 <span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-l "v1.*"</span>
 
 <span class="comment"># Show tag details — annotated message + commit info</span>
-<span class="cmd">git</span> <span class="flag">show</span> <span class="value">v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">show</span> <span class="value">v1.0.0</span>
 
 <span class="comment"># Checkout source at a specific tag (detached HEAD)</span>
-<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">v1.0.0</span>
 
 <span class="comment"># Create a hotfix branch FROM a specific release tag</span>
-<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0.1 v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0-1 v1.0.0</span>
 
 <span class="comment"># Delete a local tag (use with caution)</span>
-<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-d v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-d v1.0.0</span>
 
 <span class="comment"># Delete a remote tag (use with extreme caution — coordinate with team)</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete v1.0.0</span>
 </pre></div>
     </div>
 
@@ -660,7 +665,7 @@
 <span class="cmd">git</span> <span class="flag">log</span> <span class="value">feature/PROJ-1234 --oneline</span>
 
 <span class="comment"># Commits between two release tags (useful for changelog generation)</span>
-<span class="cmd">git</span> <span class="flag">log</span> <span class="value">v1.0.0.0..v1.0.0.1 --oneline</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">v1.0.0..v1.0.0-1 --oneline</span>
 
 <span class="comment"># Commits by a specific author</span>
 <span class="cmd">git</span> <span class="flag">log</span> <span class="value">--author="Jane Doe" --oneline</span>
@@ -680,7 +685,7 @@
 <span class="cmd">git</span> <span class="flag">log</span> <span class="value">master..feature/PROJ-1234 --oneline</span>
 
 <span class="comment"># What's in hotfix/* but not yet in master</span>
-<span class="cmd">git</span> <span class="flag">log</span> <span class="value">master..hotfix/v1.0.0.1 --oneline</span>
+<span class="cmd">git</span> <span class="flag">log</span> <span class="value">master..hotfix/v1.0.0-1 --oneline</span>
 
 <span class="comment"># Full pretty graph (save as git alias)</span>
 <span class="cmd">git</span> <span class="flag">log</span> <span class="value">--graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)&lt;%an&gt;%Creset' --abbrev-commit --all</span>
@@ -708,24 +713,24 @@
       <div class="code-block"><pre>
 <span class="comment"># STEP 4: Create hotfix branch from release tag ─────────────────────</span>
 <span class="cmd">git</span> <span class="flag">fetch</span> <span class="value">origin --tags</span>
-<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0.1 v1.0.0.0</span>
-<span class="comment"># Branch is now at the exact state of release v1.0.0.0</span>
+<span class="cmd">git</span> <span class="flag">checkout</span> <span class="value">-b hotfix/v1.0.0-1 v1.0.0</span>
+<span class="comment"># Branch is now at the exact state of release v1.0.0</span>
 
 <span class="comment"># Bump version in your code (version.txt / pom.xml / package.json)</span>
 <span class="comment"># Change: 1.0.0.0  -&gt;  1.0.0.1</span>
 <span class="cmd">git</span> <span class="flag">add</span> <span class="value">version.txt</span>
-<span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "chore: bump version to v1.0.0.1"</span>
+<span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "chore: bump version to v1.0.0-1"</span>
 
 <span class="comment"># Apply the fix</span>
 <span class="cmd">git</span> <span class="flag">add</span> <span class="value">.</span>
 <span class="cmd">git</span> <span class="flag">commit</span> <span class="value">-m "fix(PROJ-5678): resolve critical NPE in auth service"</span>
 
 <span class="comment"># Push hotfix branch to remote</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin hotfix/v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin hotfix/v1.0.0-1</span>
 
 <span class="comment"># STEP 5: Tag the hotfix branch ─────────────────────────────────────</span>
-<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0.1 -m "Hotfix v1.0.0.1 — Fix critical NPE in auth [PROJ-5678]"</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">tag</span> <span class="value">-a v1.0.0-1 -m "Hotfix v1.0.0-1 — Fix critical NPE in auth [PROJ-5678]"</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin v1.0.0-1</span>
 
 <span class="comment"># STEP 6: MR hotfix/* -&gt; master (raise via GitLab/GitHub UI)</span>
 <span class="comment"># After MR approval and merge, verify on master:</span>
@@ -734,10 +739,10 @@
 <span class="cmd">git</span> <span class="flag">log</span> <span class="value">--oneline -10</span>
 
 <span class="comment"># Clean up hotfix branch</span>
-<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-d hotfix/v1.0.0.1</span>
-<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete hotfix/v1.0.0.1</span>
+<span class="cmd">git</span> <span class="flag">branch</span> <span class="value">-d hotfix/v1.0.0-1</span>
+<span class="cmd">git</span> <span class="flag">push</span> <span class="value">origin --delete hotfix/v1.0.0-1</span>
 
-<span class="output"># Hotfix complete. v1.0.0.1 is in production. master is fully synced.</span>
+<span class="output"># Hotfix complete. v1.0.0-1 is in production. master is fully synced.</span>
 </pre></div>
     </div>
 
@@ -784,12 +789,12 @@
           </tr>
           <tr>
             <td><span class="cmd-category cat-tag">Tag</span></td>
-            <td><code>git tag -a v1.0.0.0 -m "Release v1.0.0.0"</code></td>
+            <td><code>git tag -a v1.0.0 -m "Release v1.0.0"</code></td>
             <td class="cmd-purpose">Create annotated release tag on master</td>
           </tr>
           <tr>
             <td><span class="cmd-category cat-tag">Tag</span></td>
-            <td><code>git push origin v1.0.0.0</code></td>
+            <td><code>git push origin v1.0.0</code></td>
             <td class="cmd-purpose">Push specific tag to remote</td>
           </tr>
           <tr>
@@ -804,17 +809,17 @@
           </tr>
           <tr>
             <td><span class="cmd-category cat-tag">Tag</span></td>
-            <td><code>git show v1.0.0.0</code></td>
+            <td><code>git show v1.0.0</code></td>
             <td class="cmd-purpose">Show annotated tag details and commit</td>
           </tr>
           <tr>
             <td><span class="cmd-category cat-hotfix">Hotfix</span></td>
-            <td><code>git checkout -b hotfix/v1.0.0.1 v1.0.0.0</code></td>
+            <td><code>git checkout -b hotfix/v1.0.0-1 v1.0.0</code></td>
             <td class="cmd-purpose">Create hotfix branch from a release tag</td>
           </tr>
           <tr>
             <td><span class="cmd-category cat-hotfix">Hotfix</span></td>
-            <td><code>git tag -a v1.0.0.1 -m "Hotfix v1.0.0.1"</code></td>
+            <td><code>git tag -a v1.0.0-1 -m "Hotfix v1.0.0-1"</code></td>
             <td class="cmd-purpose">Tag hotfix branch before raising MR</td>
           </tr>
           <tr>
@@ -824,7 +829,7 @@
           </tr>
           <tr>
             <td><span class="cmd-category cat-log">Log</span></td>
-            <td><code>git log v1.0.0.0..v1.0.0.1 --oneline</code></td>
+            <td><code>git log v1.0.0..v1.0.0-1 --oneline</code></td>
             <td class="cmd-purpose">Commits between two release tags (changelog)</td>
           </tr>
           <tr>
@@ -863,7 +868,7 @@
         <li><span class="check-icon">&#10003;</span> <div>All MRs to master require at least <strong>1 peer reviewer approval</strong> before merge.</div></li>
         <li><span class="check-icon">&#10003;</span> <div>CI/CD pipeline must <strong>pass all checks</strong> (build, test, security scan) before MR can be merged.</div></li>
         <li><span class="check-icon">&#10003;</span> <div>Feature branches must be <strong>deleted after merge</strong> to keep the repository clean.</div></li>
-        <li><span class="check-icon">&#10003;</span> <div>Branch name must follow <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">feature/JIRA-XXXX</code> or <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">hotfix/vX.X.X.X</code> convention &mdash; enforced via push rules.</div></li>
+        <li><span class="check-icon">&#10003;</span> <div>Branch name must follow <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">feature/JIRA-XXXX</code> or <code style="font-size:12px;background:var(--code-bg);padding:1px 4px;border-radius:3px;">hotfix/vX.X.X-N</code> convention &mdash; enforced via push rules.</div></li>
         <li><span class="check-icon">&#10003;</span> <div>Release tags are <strong>immutable and permanent</strong> &mdash; never delete or force-move a release tag.</div></li>
         <li><span class="check-icon">&#10003;</span> <div>Hotfix branches <strong>must always be merged back to master</strong> (Step 6) to prevent regression in future releases.</div></li>
         <li><span class="check-icon">&#10003;</span> <div>Version bump commit must be the <strong>first commit</strong> on a hotfix branch, before applying the fix.</div></li>
