@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>DevSecOps Pipeline Deployment Model – Confluence</title>
+<style>
+  /* ── Reset & Base ─────────────────────────────────────── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    font-size: 14px; line-height: 1.6; color: #172B4D; background: #F4F5F7;
+  }
+  a { color: #0052CC; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ── Confluence Chrome ────────────────────────────────── */
+  .conf-topbar {
+    background: #0052CC; height: 56px; display: flex; align-items: center;
+    padding: 0 24px; gap: 12px; position: sticky; top: 0; z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,.25);
+  }
+  .conf-topbar .logo { display: flex; align-items: center; gap: 8px; color: #fff; font-weight: 700; font-size: 18px; }
+  .conf-topbar .logo svg { fill: #fff; }
+  .conf-topbar .breadcrumb { color: rgba(255,255,255,.75); font-size: 13px; margin-left: 16px; }
+  .conf-topbar .breadcrumb span { color: #fff; font-weight: 600; }
+  .conf-topbar .actions { margin-left: auto; display: flex; gap: 8px; }
+  .conf-topbar .btn {
+    background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.35);
+    color: #fff; padding: 5px 14px; border-radius: 4px; font-size: 13px; cursor: pointer;
+    font-weight: 500;
+  }
+  .conf-topbar .btn-primary { background: #fff; color: #0052CC; border-color: #fff; }
+
+  /* ── Layout ───────────────────────────────────────────── */
+  .layout { display: flex; max-width: 1400px; margin: 0 auto; padding: 0; }
+  .sidebar {
+    width: 260px; flex-shrink: 0; background: #fff; border-right: 1px solid #DFE1E6;
+    min-height: calc(100vh - 56px); padding: 24px 0; position: sticky;
+    top: 56px; height: calc(100vh - 56px); overflow-y: auto;
+  }
+  .sidebar h3 { font-size: 11px; font-weight: 700; text-transform: uppercase; color: #6B778C;
+    letter-spacing: .08em; padding: 0 20px 8px; }
+  .sidebar ul { list-style: none; }
+  .sidebar ul li a {
+    display: block; padding: 6px 20px; color: #344563; font-size: 13px;
+    border-left: 3px solid transparent; transition: all .15s;
+  }
+  .sidebar ul li a:hover, .sidebar ul li a.active {
+    background: #E9F2FF; border-left-color: #0052CC; color: #0052CC; text-decoration: none;
+  }
+  .sidebar ul li.sub a { padding-left: 36px; font-size: 12px; color: #5E6C84; }
+
+  /* ── Content ──────────────────────────────────────────── */
+  .content { flex: 1; padding: 40px 48px 80px; background: #fff; min-height: calc(100vh - 56px); }
+
+  /* Page header */
+  .page-header { border-bottom: 2px solid #DFE1E6; padding-bottom: 24px; margin-bottom: 32px; }
+  .page-header .page-icon { font-size: 32px; margin-bottom: 8px; }
+  .page-header h1 { font-size: 32px; font-weight: 700; color: #172B4D; line-height: 1.2; }
+  .page-meta { display: flex; gap: 24px; margin-top: 12px; flex-wrap: wrap; }
+  .page-meta-item { display: flex; flex-direction: column; gap: 2px; }
+  .page-meta-label { font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: .06em; color: #6B778C; }
+  .page-meta-value { font-size: 13px; color: #344563; }
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 11px;
+    font-weight: 700; text-transform: uppercase; letter-spacing: .04em;
+  }
+  .badge-blue   { background: #DEEBFF; color: #0052CC; }
+  .badge-green  { background: #E3FCEF; color: #006644; }
+  .badge-purple { background: #EAE6FF; color: #403294; }
+  .badge-yellow { background: #FFFAE6; color: #FF8B00; }
+  .badge-red    { background: #FFEBE6; color: #BF2600; }
+  .badge-teal   { background: #E6FCFF; color: #008DA6; }
+
+  /* Sections */
+  h2 { font-size: 22px; font-weight: 700; color: #172B4D; margin: 40px 0 12px;
+    padding-bottom: 8px; border-bottom: 1px solid #DFE1E6; }
+  h3 { font-size: 16px; font-weight: 700; color: #172B4D; margin: 28px 0 10px; }
+  h4 { font-size: 14px; font-weight: 700; color: #344563; margin: 20px 0 8px; }
+  p  { margin-bottom: 12px; color: #344563; }
+
+  /* Info panels */
+  .panel {
+    border-radius: 4px; padding: 16px 20px; margin: 20px 0;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .panel-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .panel-body h4 { margin: 0 0 4px; font-size: 14px; font-weight: 700; }
+  .panel-body p  { margin: 0; font-size: 13px; }
+  .panel-info    { background: #DEEBFF; border-left: 4px solid #0052CC; }
+  .panel-info    .panel-icon { color: #0052CC; }
+  .panel-info    h4 { color: #0052CC; }
+  .panel-success { background: #E3FCEF; border-left: 4px solid #00875A; }
+  .panel-success .panel-icon { color: #00875A; }
+  .panel-success h4 { color: #00875A; }
+  .panel-warning { background: #FFFAE6; border-left: 4px solid #FF8B00; }
+  .panel-warning .panel-icon { color: #FF8B00; }
+  .panel-warning h4 { color: #FF8B00; }
+  .panel-error   { background: #FFEBE6; border-left: 4px solid #DE350B; }
+  .panel-error   .panel-icon { color: #DE350B; }
+  .panel-error   h4 { color: #DE350B; }
+
+  /* Tables */
+  .conf-table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  .conf-table th {
+    background: #F4F5F7; border: 1px solid #DFE1E6; padding: 10px 14px;
+    text-align: left; font-weight: 700; color: #172B4D; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .05em;
+  }
+  .conf-table td { border: 1px solid #DFE1E6; padding: 10px 14px; vertical-align: top; color: #344563; }
+  .conf-table tr:hover td { background: #F8F9FA; }
+  .conf-table .env-cell { font-weight: 600; }
+  .conf-table code {
+    background: #F4F5F7; border: 1px solid #DFE1E6; padding: 2px 6px;
+    border-radius: 3px; font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 12px; color: #172B4D;
+  }
+
+  /* Code blocks */
+  pre {
+    background: #172B4D; color: #CDD9ED; border-radius: 6px; padding: 18px 20px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 13px; line-height: 1.7; overflow-x: auto; margin: 16px 0;
+    border: 1px solid #0E1B2E;
+  }
+  pre .kw  { color: #7EC8E3; }
+  pre .str { color: #A5D6A7; }
+  pre .cmt { color: #6B778C; font-style: italic; }
+  pre .var { color: #FFD54F; }
+  pre .num { color: #FF8A65; }
+  pre .op  { color: #CE93D8; }
+
+  /* ── DIAGRAM SECTION ──────────────────────────────────── */
+  .diagram-wrapper {
+    background: #F8F9FA; border: 1px solid #DFE1E6; border-radius: 8px;
+    padding: 28px; margin: 24px 0; overflow-x: auto;
+  }
+  .diagram-wrapper h3 { margin-top: 0; font-size: 15px; color: #6B778C;
+    text-align: center; font-weight: 600; letter-spacing: .04em; margin-bottom: 20px; }
+  .diagram-wrapper svg { display: block; margin: 0 auto; }
+
+  /* ── Environment color guide ──────────────────────────── */
+  .env-legend { display: flex; flex-wrap: wrap; gap: 10px; margin: 16px 0; }
+  .env-legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; }
+  .env-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Step list */
+  .step-list { counter-reset: step; list-style: none; margin: 12px 0 20px; padding: 0; }
+  .step-list li {
+    counter-increment: step; display: flex; gap: 14px; align-items: flex-start;
+    margin-bottom: 14px; padding: 14px 16px; background: #FAFBFC;
+    border: 1px solid #DFE1E6; border-radius: 6px;
+  }
+  .step-list li::before {
+    content: counter(step); display: flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; background: #0052CC; color: #fff; border-radius: 50%;
+    font-weight: 700; font-size: 13px; flex-shrink: 0; margin-top: 1px;
+  }
+  .step-list li .step-body strong { display: block; color: #172B4D; font-size: 14px; margin-bottom: 3px; }
+  .step-list li .step-body p { margin: 0; font-size: 13px; color: #5E6C84; }
+
+  /* Version tags */
+  .ver-tag {
+    display: inline-block; background: #172B4D; color: #fff; font-family: monospace;
+    font-size: 12px; padding: 2px 8px; border-radius: 12px; font-weight: 700;
+  }
+  .ver-tag.hotfix { background: #DE350B; }
+
+  /* Divider */
+  hr { border: none; border-top: 1px solid #DFE1E6; margin: 36px 0; }
+
+  /* Expandable (just styled visually) */
+  .expand-panel {
+    border: 1px solid #DFE1E6; border-radius: 6px; margin: 16px 0; overflow: hidden;
+  }
+  .expand-header {
+    background: #F4F5F7; padding: 12px 16px; font-weight: 700; font-size: 14px;
+    color: #172B4D; display: flex; align-items: center; gap: 8px; cursor: pointer;
+  }
+  .expand-header .arr { transition: transform .2s; }
+  .expand-body { padding: 16px; background: #fff; border-top: 1px solid #DFE1E6; }
+
+  /* Two-column grid */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 16px 0; }
+  @media (max-width: 800px) { .two-col { grid-template-columns: 1fr; } }
+  .card {
+    border: 1px solid #DFE1E6; border-radius: 6px; padding: 16px; background: #FAFBFC;
+  }
+  .card h4 { margin-top: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: #6B778C; }
+  .card .card-title { font-size: 18px; font-weight: 700; color: #172B4D; margin-bottom: 6px; }
+  .card p { font-size: 13px; color: #5E6C84; margin: 0; }
+
+  /* Print */
+  @media print {
+    .conf-topbar, .sidebar { display: none; }
+    .content { padding: 20px; }
+    .layout { display: block; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     TOP BAR
+══════════════════════════════════════════════════════════ -->
+<header class="conf-topbar">
+  <div class="logo">
+    <svg width="22" height="22" viewBox="0 0 24 24"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8zm-1-5h2v2h-2zm0-8h2v6h-2z"/></svg>
+    Confluence
+  </div>
+  <span class="breadcrumb">Engineering &rsaquo; Platform &rsaquo; DevSecOps &rsaquo; <span>Pipeline Deployment Model</span></span>
+  <div class="actions">
+    <button class="btn">Share</button>
+    <button class="btn">Watch</button>
+    <button class="btn btn-primary">Edit</button>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════
+     LAYOUT
+══════════════════════════════════════════════════════════ -->
+<div class="layout">
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <h3>On this page</h3>
+    <ul>
+      <li><a href="#overview" class="active">Overview</a></li>
+      <li><a href="#diagram">Pipeline Diagram</a></li>
+      <li><a href="#branch-strategy">Branch Strategy</a></li>
+      <li class="sub"><a href="#feature">feature/* Branch</a></li>
+      <li class="sub"><a href="#master">master Branch</a></li>
+      <li class="sub"><a href="#tag">Tag Release</a></li>
+      <li class="sub"><a href="#hotfix">hotfix/* Branch</a></li>
+      <li><a href="#versioning">Versioning Model</a></li>
+      <li><a href="#environments">Environment Matrix</a></li>
+      <li><a href="#qa-gates">QA Gate Definitions</a></li>
+      <li><a href="#flows">Deployment Flows</a></li>
+      <li><a href="#security">Security Controls</a></li>
+      <li><a href="#responsibilities">RACI</a></li>
+    </ul>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+
+    <!-- ── PAGE HEADER ───────────────────────────────────── -->
+    <div class="page-header">
+      <div class="page-icon">🚀</div>
+      <h1>DevSecOps Pipeline Deployment Model</h1>
+      <div class="page-meta">
+        <div class="page-meta-item">
+          <span class="page-meta-label">Owner</span>
+          <span class="page-meta-value">Platform Engineering</span>
+        </div>
+        <div class="page-meta-item">
+          <span class="page-meta-label">Last Updated</span>
+          <span class="page-meta-value">April 29, 2026</span>
+        </div>
+        <div class="page-meta-item">
+          <span class="page-meta-label">Status</span>
+          <span class="badge badge-green">APPROVED</span>
+        </div>
+        <div class="page-meta-item">
+          <span class="page-meta-label">Version</span>
+          <span class="badge badge-blue">v2.0</span>
+        </div>
+        <div class="page-meta-item">
+          <span class="page-meta-label">Audience</span>
+          <span class="page-meta-value">Engineering · Release · DevSecOps</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── OVERVIEW ───────────────────────────────────────── -->
+    <h2 id="overview">1. Overview</h2>
+    <p>
+      This document defines the enterprise-grade <strong>DevSecOps Pipeline Deployment Model</strong>
+      governing how code progresses from developer workstations through all environments to production.
+      The model enforces security scanning, automated quality gates, and controlled release management
+      aligned with the organisation's change-management and compliance requirements.
+    </p>
+
+    <div class="panel panel-info">
+      <span class="panel-icon">ℹ️</span>
+      <div class="panel-body">
+        <h4>Scope</h4>
+        <p>Applies to all application repositories hosted in the enterprise Git platform.
+        Teams must not bypass pipeline stages without an approved Change Request (CR).</p>
+      </div>
+    </div>
+
+    <div class="two-col">
+      <div class="card">
+        <div class="card-title">4</div>
+        <h4>Branch Types</h4>
+        <p>feature/*, master, tag, hotfix/*</p>
+      </div>
+      <div class="card">
+        <div class="card-title">7</div>
+        <h4>Deployment Targets</h4>
+        <p>DEV · QAF · QAP · QAR · UAT · UAT-DR · PROD · PROD-DR</p>
+      </div>
+    </div>
+
+    <!-- ── PIPELINE DIAGRAM ───────────────────────────────── -->
+    <h2 id="diagram">2. Pipeline Diagram</h2>
+
+    <div class="diagram-wrapper">
+      <h3>🗺 Full Pipeline Flow — Branch × Environment Mapping</h3>
+
+      <!-- ═══════════════════════════════════════════
+           MASTER + TAG FLOW  (top half)
+           FEATURE + HOTFIX   (bottom half)
+      ═══════════════════════════════════════════ -->
+      <svg width="1080" height="800" viewBox="0 0 1080 800" xmlns="http://www.w3.org/2000/svg"
+           font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Arial,sans-serif">
+
+        <!-- ── Defs ── -->
+        <defs>
+          <!-- arrow markers -->
+          <marker id="arr-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#0052CC"/>
+          </marker>
+          <marker id="arr-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#00875A"/>
+          </marker>
+          <marker id="arr-red" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#DE350B"/>
+          </marker>
+          <marker id="arr-orange" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#FF8B00"/>
+          </marker>
+          <marker id="arr-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#403294"/>
+          </marker>
+          <marker id="arr-grey" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+            <polygon points="0 0,10 3.5,0 7" fill="#6B778C"/>
+          </marker>
+          <!-- drop shadow -->
+          <filter id="shadow" x="-10%" y="-10%" width="120%" height="130%">
+            <feDropShadow dx="0" dy="2" stdDeviation="2" flood-opacity=".12"/>
+          </filter>
+          <!-- subtle glow for prod -->
+          <filter id="glow">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="3" result="blur"/>
+            <feFlood flood-color="#DE350B" flood-opacity=".3" result="color"/>
+            <feComposite in="color" in2="blur" operator="in" result="shadow"/>
+            <feMerge><feMergeNode in="shadow"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+
+        <!-- ─── BACKGROUND SWIM LANES ─────────────────── -->
+        <!-- Lane labels (left) -->
+        <!-- Master / Tag lane -->
+        <rect x="0" y="0" width="1080" height="340" fill="#F0F4FF" rx="0"/>
+        <!-- Feature lane -->
+        <rect x="0" y="340" width="1080" height="140" fill="#F0FFF4" rx="0"/>
+        <!-- Hotfix lane -->
+        <rect x="0" y="480" width="1080" height="320" fill="#FFF8F0" rx="0"/>
+
+        <!-- Lane left-side label strips -->
+        <rect x="0" y="0"   width="90" height="340" fill="#0052CC"/>
+        <rect x="0" y="340" width="90" height="140" fill="#00875A"/>
+        <rect x="0" y="480" width="90" height="320" fill="#DE350B"/>
+
+        <text transform="rotate(-90,45,170)" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" letter-spacing="1">MASTER / TAG</text>
+        <text transform="rotate(-90,45,410)" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" letter-spacing="1">FEATURE / *</text>
+        <text transform="rotate(-90,45,640)" text-anchor="middle" fill="#fff" font-size="13" font-weight="700" letter-spacing="1">HOTFIX / *</text>
+
+        <!-- Separator lines -->
+        <line x1="90" y1="340" x2="1080" y2="340" stroke="#DFE1E6" stroke-width="2" stroke-dasharray="6,4"/>
+        <line x1="90" y1="480" x2="1080" y2="480" stroke="#DFE1E6" stroke-width="2" stroke-dasharray="6,4"/>
+
+        <!-- ── LEGEND (top-right) ────────────────────── -->
+        <rect x="830" y="10" width="240" height="145" rx="6" fill="#fff" stroke="#DFE1E6" filter="url(#shadow)"/>
+        <text x="850" y="32" font-size="11" font-weight="700" fill="#6B778C" letter-spacing=".08em">LEGEND</text>
+        <rect x="850" y="42" width="14" height="5" rx="2" fill="#0052CC"/>
+        <text x="870" y="50" font-size="11" fill="#172B4D">Master Branch Flow</text>
+        <line x1="850" y1="65" x2="864" y2="65" stroke="#00875A" stroke-width="2.5" marker-end="url(#arr-green)"/>
+        <text x="870" y="69" font-size="11" fill="#172B4D">Feature Branch (Optional)</text>
+        <line x1="850" y1="85" x2="864" y2="85" stroke="#DE350B" stroke-width="2.5" marker-end="url(#arr-red)"/>
+        <text x="870" y="89" font-size="11" fill="#172B4D">Hotfix Branch Flow</text>
+        <line x1="850" y1="105" x2="864" y2="105" stroke="#403294" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr-purple)"/>
+        <text x="870" y="109" font-size="11" fill="#172B4D">Tag Trigger</text>
+        <line x1="850" y1="125" x2="864" y2="125" stroke="#FF8B00" stroke-width="2.5" marker-end="url(#arr-orange)"/>
+        <text x="870" y="129" font-size="11" fill="#172B4D">DR Replication</text>
+        <rect x="850" y="138" width="10" height="10" rx="2" fill="#DEEBFF" stroke="#0052CC"/>
+        <text x="865" y="148" font-size="11" fill="#172B4D">Optional Stage</text>
+
+        <!-- ═══════════════════════════════════════════════
+             MASTER / TAG LANE  (y: 0–340)
+             Row A: Developer → master → QA gates → [tag] → UAT → PROD
+        ═══════════════════════════════════════════════ -->
+
+        <!-- Developer (Coder Icon) -->
+        <circle cx="140" cy="100" r="22" fill="#172B4D" filter="url(#shadow)"/>
+        <text x="140" y="104" text-anchor="middle" font-size="20" fill="#fff">👨‍💻</text>
+        <text x="140" y="134" text-anchor="middle" font-size="11" fill="#344563" font-weight="700">Developer</text>
+
+        <!-- master branch node -->
+        <rect x="185" y="72" width="100" height="42" rx="6" fill="#172B4D" filter="url(#shadow)"/>
+        <text x="235" y="88" text-anchor="middle" font-size="12" fill="#7EC8E3" font-family="monospace" font-weight="700">master</text>
+        <text x="235" y="103" text-anchor="middle" font-size="10" fill="#CDD9ED">main branch</text>
+
+        <!-- master → QA: arrow -->
+        <line x1="285" y1="93" x2="330" y2="93" stroke="#0052CC" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+
+        <!-- QA: Functional -->
+        <rect x="330" y="65" width="108" height="52" rx="6" fill="#FF8B00" filter="url(#shadow)"/>
+        <text x="384" y="83" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">QA</text>
+        <text x="384" y="97" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Functional</text>
+        <text x="384" y="109" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.8)">(QAF)</text>
+
+        <!-- QAF → QAP: arrow -->
+        <line x1="438" y1="91" x2="458" y2="91" stroke="#0052CC" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+
+        <!-- QA: Performance -->
+        <rect x="458" y="65" width="108" height="52" rx="6" fill="#FF8B00" filter="url(#shadow)"/>
+        <text x="512" y="83" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">QA</text>
+        <text x="512" y="97" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Performance</text>
+        <text x="512" y="109" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.8)">(QAP)</text>
+
+        <!-- QAP → QAR: arrow -->
+        <line x1="566" y1="91" x2="586" y2="91" stroke="#0052CC" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+
+        <!-- QA: Regression -->
+        <rect x="586" y="65" width="108" height="52" rx="6" fill="#FF8B00" filter="url(#shadow)"/>
+        <text x="640" y="83" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">QA</text>
+        <text x="640" y="97" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Regression</text>
+        <text x="640" y="109" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.8)">(QAR)</text>
+
+        <!-- QAR → Tag (down curve) -->
+        <path d="M694,91 Q740,91 740,145" stroke="#403294" stroke-width="2.2" stroke-dasharray="6,3" fill="none" marker-end="url(#arr-purple)"/>
+
+        <!-- Tag node -->
+        <rect x="698" y="145" width="86" height="42" rx="20" fill="#403294" filter="url(#shadow)"/>
+        <text x="741" y="161" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">🏷 TAG</text>
+        <text x="741" y="176" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.85)" font-family="monospace">1.0.0</text>
+
+        <!-- Tag → UAT: arrow -->
+        <line x1="784" y1="166" x2="818" y2="166" stroke="#403294" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arr-purple)"/>
+
+        <!-- UAT -->
+        <rect x="818" y="145" width="80" height="42" rx="6" fill="#0065FF" filter="url(#shadow)"/>
+        <text x="858" y="166" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">UAT</text>
+        <text x="858" y="180" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.8)">User Acc Test</text>
+
+        <!-- UAT → UAT-DR: arrow down -->
+        <line x1="858" y1="187" x2="858" y2="210" stroke="#FF8B00" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+        <!-- UAT-DR -->
+        <rect x="818" y="210" width="80" height="36" rx="6" fill="#0747A6" filter="url(#shadow)"/>
+        <text x="858" y="228" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">UAT-DR</text>
+        <text x="858" y="240" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">Disaster Recov</text>
+
+        <!-- UAT → PROD: arrow right -->
+        <line x1="898" y1="166" x2="940" y2="166" stroke="#0052CC" stroke-width="2.2" marker-end="url(#arr-blue)"/>
+
+        <!-- PROD -->
+        <rect x="940" y="145" width="82" height="42" rx="6" fill="#DE350B" filter="url(#glow)" filter="url(#shadow)"/>
+        <text x="981" y="166" text-anchor="middle" font-size="14" fill="#fff" font-weight="800">PROD</text>
+        <text x="981" y="180" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.85)">Production</text>
+
+        <!-- PROD → PROD-DR: arrow down -->
+        <line x1="981" y1="187" x2="981" y2="210" stroke="#FF8B00" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+        <!-- PROD-DR -->
+        <rect x="940" y="210" width="82" height="36" rx="6" fill="#BF2600" filter="url(#shadow)"/>
+        <text x="981" y="228" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">PROD-DR</text>
+        <text x="981" y="240" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">Disaster Recov</text>
+
+        <!-- Deploy step labels under Master row -->
+        <text x="384" y="130" text-anchor="middle" font-size="10" fill="#344563" font-style="italic">Auto-triggered</text>
+        <text x="512" y="130" text-anchor="middle" font-size="10" fill="#344563" font-style="italic">Auto-triggered</text>
+        <text x="640" y="130" text-anchor="middle" font-size="10" fill="#344563" font-style="italic">Auto-triggered</text>
+
+        <!-- master row label strip (right side decoration) -->
+        <rect x="90" y="2" width="720" height="4" rx="2" fill="#0052CC" opacity=".35"/>
+
+        <!-- ── Security Scan annotation -->
+        <rect x="190" y="148" width="115" height="30" rx="4" fill="#FFFAE6" stroke="#FF8B00" stroke-width="1"/>
+        <text x="247" y="162" text-anchor="middle" font-size="10.5" fill="#FF8B00" font-weight="700">🔐 Security Scan</text>
+        <text x="247" y="173" text-anchor="middle" font-size="9.5" fill="#6B778C">SAST · SCA · DAST</text>
+        <line x1="247" y1="114" x2="247" y2="148" stroke="#FF8B00" stroke-width="1.2" stroke-dasharray="4,3"/>
+
+        <!-- ── Code Quality annotation -->
+        <rect x="330" y="148" width="115" height="30" rx="4" fill="#E3FCEF" stroke="#00875A" stroke-width="1"/>
+        <text x="387" y="162" text-anchor="middle" font-size="10.5" fill="#00875A" font-weight="700">✅ Code Quality</text>
+        <text x="387" y="173" text-anchor="middle" font-size="9.5" fill="#6B778C">SonarQube · Coverage</text>
+        <line x1="387" y1="117" x2="387" y2="148" stroke="#00875A" stroke-width="1.2" stroke-dasharray="4,3"/>
+
+        <!-- ── Approval Gate annotation -->
+        <rect x="695" y="245" width="100" height="30" rx="4" fill="#EAE6FF" stroke="#403294" stroke-width="1"/>
+        <text x="745" y="259" text-anchor="middle" font-size="10.5" fill="#403294" font-weight="700">🔒 Approval Gate</text>
+        <text x="745" y="270" text-anchor="middle" font-size="9.5" fill="#6B778C">Change Advisory Board</text>
+        <line x1="745" y1="245" x2="741" y2="187" stroke="#403294" stroke-width="1.2" stroke-dasharray="4,3"/>
+
+        <!-- ── DEV environment (shown in Master lane too as optional deploy) -->
+        <rect x="185" y="193" width="80" height="36" rx="6" fill="#8777D9" filter="url(#shadow)"/>
+        <text x="225" y="211" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">DEV</text>
+        <text x="225" y="223" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">Build &amp; Deploy</text>
+        <!-- master branch (CI) connects to DEV -->
+        <line x1="235" y1="114" x2="235" y2="193" stroke="#0052CC" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arr-blue)"/>
+        <text x="252" y="158" font-size="10" fill="#0052CC" font-style="italic">CI Build</text>
+
+        <!-- ═══════════════════════════════════════════════
+             FEATURE LANE  (y: 340–480)
+        ═══════════════════════════════════════════════ -->
+
+        <!-- Developer icon (feature) -->
+        <circle cx="140" cy="410" r="20" fill="#00875A" filter="url(#shadow)"/>
+        <text x="140" y="415" text-anchor="middle" font-size="18" fill="#fff">👩‍💻</text>
+        <text x="140" y="442" text-anchor="middle" font-size="11" fill="#344563" font-weight="700">Developer</text>
+
+        <!-- feature/* branch node -->
+        <rect x="178" y="385" width="120" height="42" rx="6" fill="#006644" filter="url(#shadow)"/>
+        <text x="238" y="400" text-anchor="middle" font-size="11" fill="#B3F0D6" font-family="monospace" font-weight="700">feature/*</text>
+        <text x="238" y="415" text-anchor="middle" font-size="10" fill="#6EE7B7">e.g. feature/PROJ-123</text>
+
+        <!-- Arrow from feature/* to DEV -->
+        <line x1="298" y1="406" x2="350" y2="406" stroke="#00875A" stroke-width="2.2" marker-end="url(#arr-green)"/>
+
+        <!-- DEV (feature) -->
+        <rect x="350" y="385" width="88" height="42" rx="6" fill="#8777D9" filter="url(#shadow)"/>
+        <text x="394" y="406" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">DEV</text>
+        <text x="394" y="420" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.8)">Optional Deploy</text>
+
+        <!-- OPTIONAL badge -->
+        <rect x="440" y="392" width="68" height="26" rx="12" fill="#DEEBFF" stroke="#0052CC" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="474" y="409" text-anchor="middle" font-size="10.5" fill="#0052CC" font-weight="700">OPTIONAL</text>
+
+        <!-- Developer pushes PR → master label -->
+        <path d="M238,427 Q238,460 235,460 Q185,460 185,340" stroke="#6B778C" stroke-width="1.5" stroke-dasharray="5,3" fill="none" marker-end="url(#arr-grey)"/>
+        <text x="155" y="458" font-size="10" fill="#6B778C" font-style="italic">PR → master</text>
+
+        <!-- ═══════════════════════════════════════════════
+             HOTFIX LANE  (y: 480–800)
+        ═══════════════════════════════════════════════ -->
+
+        <!-- Bug alert icon -->
+        <circle cx="140" cy="560" r="22" fill="#DE350B" filter="url(#shadow)"/>
+        <text x="140" y="565" text-anchor="middle" font-size="20" fill="#fff">🐛</text>
+        <text x="140" y="594" text-anchor="middle" font-size="11" fill="#344563" font-weight="700">Prod Incident</text>
+
+        <!-- hotfix/* branch node -->
+        <rect x="178" y="535" width="120" height="42" rx="6" fill="#7A0000" filter="url(#shadow)"/>
+        <text x="238" y="551" text-anchor="middle" font-size="11" fill="#FFCDD2" font-family="monospace" font-weight="700">hotfix/*</text>
+        <text x="238" y="566" text-anchor="middle" font-size="10" fill="#EF9A9A">from master branch</text>
+
+        <!-- hotfix → DEV -->
+        <line x1="298" y1="556" x2="340" y2="556" stroke="#DE350B" stroke-width="2.2" marker-end="url(#arr-red)"/>
+
+        <!-- DEV (hotfix) -->
+        <rect x="340" y="533" width="80" height="42" rx="6" fill="#8777D9" filter="url(#shadow)"/>
+        <text x="380" y="554" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">DEV</text>
+        <text x="380" y="568" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">Validate Fix</text>
+
+        <!-- DEV → QAF (hotfix) -->
+        <line x1="420" y1="554" x2="456" y2="554" stroke="#DE350B" stroke-width="2.2" marker-end="url(#arr-red)"/>
+
+        <!-- QAF (hotfix) -->
+        <rect x="456" y="533" width="88" height="42" rx="6" fill="#FF8B00" filter="url(#shadow)"/>
+        <text x="500" y="551" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">QA</text>
+        <text x="500" y="564" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Functional</text>
+        <text x="500" y="576" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">(QAF)</text>
+
+        <!-- QAF → QAR (hotfix): note: hotfix skips perf, runs functional + regression only in some models;
+             Per spec: "validate lower env" — we'll show both QAF and QAR for hotfix -->
+        <line x1="544" y1="554" x2="580" y2="554" stroke="#DE350B" stroke-width="2.2" marker-end="url(#arr-red)"/>
+
+        <!-- QAR (hotfix) -->
+        <rect x="580" y="533" width="88" height="42" rx="6" fill="#FF8B00" filter="url(#shadow)"/>
+        <text x="624" y="551" text-anchor="middle" font-size="12" fill="#fff" font-weight="700">QA</text>
+        <text x="624" y="564" text-anchor="middle" font-size="10" fill="#fff" font-weight="600">Regression</text>
+        <text x="624" y="576" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">(QAR)</text>
+
+        <!-- QAR → Hotfix Tag (hotfix) -->
+        <path d="M668,554 Q712,554 712,608" stroke="#403294" stroke-width="2.2" stroke-dasharray="6,3" fill="none" marker-end="url(#arr-purple)"/>
+
+        <!-- Hotfix Tag node -->
+        <rect x="668" y="608" width="92" height="42" rx="20" fill="#7A0000" filter="url(#shadow)"/>
+        <text x="714" y="624" text-anchor="middle" font-size="11" fill="#FFCDD2" font-weight="700">🏷 HOTFIX TAG</text>
+        <text x="714" y="639" text-anchor="middle" font-size="10" fill="#EF9A9A" font-family="monospace">1.0.0-1</text>
+
+        <!-- Hotfix Tag → UAT -->
+        <line x1="760" y1="629" x2="800" y2="629" stroke="#403294" stroke-width="2.2" stroke-dasharray="6,3" marker-end="url(#arr-purple)"/>
+
+        <!-- UAT (hotfix) -->
+        <rect x="800" y="608" width="80" height="42" rx="6" fill="#0065FF" filter="url(#shadow)"/>
+        <text x="840" y="629" text-anchor="middle" font-size="13" fill="#fff" font-weight="700">UAT</text>
+        <text x="840" y="643" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">Smoke Test</text>
+
+        <!-- UAT → UAT-DR (hotfix): arrow down -->
+        <line x1="840" y1="650" x2="840" y2="672" stroke="#FF8B00" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+        <!-- UAT-DR (hotfix) -->
+        <rect x="800" y="672" width="80" height="36" rx="6" fill="#0747A6" filter="url(#shadow)"/>
+        <text x="840" y="690" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">UAT-DR</text>
+        <text x="840" y="702" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">DR Sync</text>
+
+        <!-- UAT → PROD (hotfix): arrow right -->
+        <line x1="880" y1="629" x2="920" y2="629" stroke="#DE350B" stroke-width="2.2" marker-end="url(#arr-red)"/>
+
+        <!-- PROD (hotfix) -->
+        <rect x="920" y="608" width="82" height="42" rx="6" fill="#DE350B" filter="url(#glow)" filter="url(#shadow)"/>
+        <text x="961" y="629" text-anchor="middle" font-size="14" fill="#fff" font-weight="800">PROD</text>
+        <text x="961" y="643" text-anchor="middle" font-size="10" fill="rgba(255,255,255,.85)">Hotfix Deploy</text>
+
+        <!-- PROD → PROD-DR (hotfix): arrow down -->
+        <line x1="961" y1="650" x2="961" y2="672" stroke="#FF8B00" stroke-width="2" marker-end="url(#arr-orange)"/>
+
+        <!-- PROD-DR (hotfix) -->
+        <rect x="920" y="672" width="82" height="36" rx="6" fill="#BF2600" filter="url(#shadow)"/>
+        <text x="961" y="690" text-anchor="middle" font-size="11" fill="#fff" font-weight="700">PROD-DR</text>
+        <text x="961" y="702" text-anchor="middle" font-size="9.5" fill="rgba(255,255,255,.8)">DR Sync</text>
+
+        <!-- ── Post-hotfix: merge back to master label ── -->
+        <rect x="160" y="728" width="680" height="28" rx="4" fill="rgba(0,0,0,0)" stroke="#6B778C" stroke-width="1.2" stroke-dasharray="5,3"/>
+        <text x="500" y="747" text-anchor="middle" font-size="11" fill="#6B778C" font-style="italic">
+          ↩ After hotfix deploy, merge hotfix/* back into master &amp; create next normal release tag (e.g. 1.1.0)
+        </text>
+
+        <!-- Developer arrows -->
+        <line x1="162" y1="410" x2="178" y2="406" stroke="#00875A" stroke-width="2" marker-end="url(#arr-green)"/>
+        <line x1="162" y1="93"  x2="185" y2="93"  stroke="#0052CC" stroke-width="2" marker-end="url(#arr-blue)"/>
+        <line x1="162" y1="560" x2="178" y2="556" stroke="#DE350B" stroke-width="2" marker-end="url(#arr-red)"/>
+
+        <!-- Vertical phase column separators (subtle) -->
+        <line x1="170" y1="0" x2="170" y2="800" stroke="#DFE1E6" stroke-width="1" stroke-dasharray="2,4" opacity=".5"/>
+
+      </svg>
+    </div>
+
+    <!-- Environment colour legend -->
+    <div class="env-legend">
+      <span class="env-legend-item"><span class="env-dot" style="background:#8777D9"></span>DEV</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#FF8B00"></span>QA (F/P/R)</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#0065FF"></span>UAT</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#0747A6"></span>UAT-DR</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#DE350B"></span>PROD</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#BF2600"></span>PROD-DR</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#403294"></span>Tag / Gate</span>
+      <span class="env-legend-item"><span class="env-dot" style="background:#7A0000"></span>Hotfix Tag</span>
+    </div>
+
+    <!-- ── BRANCH STRATEGY ─────────────────────────────── -->
+    <h2 id="branch-strategy">3. Branch Strategy</h2>
+    <p>
+      The pipeline follows a <strong>trunk-based GitFlow variant</strong> with four branch categories, each with
+      distinct deployment targets, quality gates, and approval requirements.
+    </p>
+
+    <!-- ── FEATURE /* ── -->
+    <h3 id="feature">3.1 &nbsp;<code>feature/*</code> &mdash; Feature Development Branch</h3>
+
+    <div class="panel panel-info">
+      <span class="panel-icon">💡</span>
+      <div class="panel-body">
+        <h4>Purpose</h4>
+        <p>Short-lived branches created from <code>master</code> for individual features, stories, or tasks.
+        Naming convention: <code>feature/&lt;JIRA-ID&gt;-short-description</code> (e.g. <code>feature/PROJ-421-payment-gateway</code>).</p>
+      </div>
+    </div>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Attribute</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="env-cell">Source</td><td><code>master</code></td></tr>
+        <tr><td class="env-cell">Deploy Target</td><td><span class="badge badge-purple">DEV</span> &nbsp;<em>(Optional — developer's discretion)</em></td></tr>
+        <tr><td class="env-cell">Trigger</td><td>Manual pipeline trigger or push event (configurable per team)</td></tr>
+        <tr><td class="env-cell">Gates Required</td><td>Unit tests · SAST scan · Code style lint</td></tr>
+        <tr><td class="env-cell">Lifecycle</td><td>Deleted after merged Pull Request is approved into <code>master</code></td></tr>
+        <tr><td class="env-cell">Merge Strategy</td><td>Squash commit via PR with minimum 1 peer review</td></tr>
+      </tbody>
+    </table>
+
+    <ul class="step-list">
+      <li>
+        <div class="step-body">
+          <strong>Create Branch</strong>
+          <p>Branch off <code>master</code>: <code>git checkout -b feature/PROJ-421-payment-gateway</code></p>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Develop &amp; commit</strong>
+          <p>Push commits; each push triggers CI (compile, unit test, SAST). Optional DEV deploy available.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>Open Pull Request → <code>master</code></strong>
+          <p>Required: passing CI, SonarQube quality gate, ≥1 approver. Branch is then merged and deleted.</p>
+        </div>
+      </li>
+    </ul>
+
+    <!-- ── MASTER ── -->
+    <h3 id="master">3.2 &nbsp;<code>master</code> &mdash; Integration Branch</h3>
+
+    <div class="panel panel-success">
+      <span class="panel-icon">✅</span>
+      <div class="panel-body">
+        <h4>Purpose</h4>
+        <p>The primary integration branch. All feature and hotfix work is merged here. Every commit to <code>master</code>
+        automatically triggers the full QA pipeline (QAF → QAP → QAR) before a release tag is created.</p>
+      </div>
+    </div>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Stage</th><th>Environment</th><th>Gate Type</th><th>Pass Criteria</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>CI Build</td>
+          <td><span class="badge badge-purple">DEV</span></td>
+          <td>Automated</td>
+          <td>Compile success · unit test pass · Docker image build</td>
+        </tr>
+        <tr>
+          <td>Security Scan</td>
+          <td>Pipeline</td>
+          <td>Automated</td>
+          <td>SAST (SonarQube) · SCA (OWASP Dependency Check) · Secret scan</td>
+        </tr>
+        <tr>
+          <td>QA Functional (QAF)</td>
+          <td><span class="badge badge-yellow">QA</span></td>
+          <td>Automated</td>
+          <td>All integration/E2E test suites green, &lt;1% failure rate</td>
+        </tr>
+        <tr>
+          <td>QA Performance (QAP)</td>
+          <td><span class="badge badge-yellow">QA</span></td>
+          <td>Automated</td>
+          <td>p95 response ≤ SLA threshold · no memory leak detected (JMeter/k6)</td>
+        </tr>
+        <tr>
+          <td>QA Regression (QAR)</td>
+          <td><span class="badge badge-yellow">QA</span></td>
+          <td>Automated</td>
+          <td>Full regression suite 100% pass · zero P1/P2 defects</td>
+        </tr>
+        <tr>
+          <td>Tag Creation</td>
+          <td>—</td>
+          <td>Manual (Release Manager)</td>
+          <td>CAB approval · release notes attached</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── TAG ── -->
+    <h3 id="tag">3.3 &nbsp;<code>tag</code> &mdash; Release Tag (Deployment Trigger)</h3>
+
+    <div class="panel panel-warning">
+      <span class="panel-icon">🏷</span>
+      <div class="panel-body">
+        <h4>Purpose</h4>
+        <p>An immutable, signed Git tag created from <code>master</code> after all QA gates pass.
+        The tag is the <strong>sole trigger</strong> for deployments to UAT, UAT-DR, PROD, and PROD-DR.
+        No direct deployments to these environments are permitted without a valid tag.</p>
+      </div>
+    </div>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Attribute</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="env-cell">Source Branch</td><td><code>master</code> only</td></tr>
+        <tr><td class="env-cell">Naming (Normal)</td><td><span class="ver-tag">1.0.0</span> &nbsp; Semantic Versioning — MAJOR.MINOR.PATCH</td></tr>
+        <tr><td class="env-cell">Naming (Hotfix)</td><td><span class="ver-tag hotfix">1.0.0-1</span> &nbsp; Base version + sequential hotfix counter</td></tr>
+        <tr><td class="env-cell">Signing</td><td>GPG-signed tags required (<code>git tag -s</code>)</td></tr>
+        <tr><td class="env-cell">Deployment Order</td><td>UAT → UAT-DR ↔ PROD → PROD-DR</td></tr>
+        <tr><td class="env-cell">Approval Gate</td><td>CAB (Change Advisory Board) sign-off required before PROD deploy</td></tr>
+        <tr><td class="env-cell">Rollback</td><td>Re-deploy previous tag; no code changes required</td></tr>
+      </tbody>
+    </table>
+
+    <p>Deployment sequence on tag push:</p>
+    <ul class="step-list">
+      <li>
+        <div class="step-body">
+          <strong>UAT Deploy</strong>
+          <p>Deploy tagged artefact to UAT. Run automated smoke tests and UAT sign-off by business stakeholders.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>UAT-DR Replication</strong>
+          <p>Sync deployment to UAT Disaster Recovery site. Validate DR database replication and health checks.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>PROD Deploy</strong>
+          <p>After CAB approval, deploy to Production using blue/green or rolling strategy. Monitor alerts for 30 min.</p>
+        </div>
+      </li>
+      <li>
+        <div class="step-body">
+          <strong>PROD-DR Replication</strong>
+          <p>Sync deployment to Production DR site. Full failover test executed quarterly.</p>
+        </div>
+      </li>
+    </ul>
+
+    <!-- ── HOTFIX /* ── -->
+    <h3 id="hotfix">3.4 &nbsp;<code>hotfix/*</code> &mdash; Emergency Fix Branch</h3>
+
+    <div class="panel panel-error">
+      <span class="panel-icon">🚨</span>
+      <div class="panel-body">
+        <h4>Purpose</h4>
+        <p>Emergency branches created from <code>master</code> (at the current PROD tag) when a P1 defect is detected in production.
+        Hotfix branches must validate lower environments before creating a hotfix release tag. After deployment,
+        the branch is merged back into <code>master</code>.</p>
+      </div>
+    </div>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Attribute</th><th>Detail</th></tr>
+      </thead>
+      <tbody>
+        <tr><td class="env-cell">Source Branch</td><td><code>master</code> (at the commit of the failing PROD tag)</td></tr>
+        <tr><td class="env-cell">Naming Convention</td><td><code>hotfix/&lt;INCIDENT-ID&gt;-short-description</code> e.g. <code>hotfix/INC-8842-payment-timeout</code></td></tr>
+        <tr><td class="env-cell">Deploy Targets</td><td><span class="badge badge-purple">DEV</span> → <span class="badge badge-yellow">QA (QAF + QAR)</span></td></tr>
+        <tr><td class="env-cell">QA Scope</td><td>Functional (QAF) + Regression (QAR) — Performance (QAP) skipped for speed</td></tr>
+        <tr><td class="env-cell">Tag Version</td><td><span class="ver-tag hotfix">1.0.0-1</span> &nbsp; (suffix increments for each hotfix: 1.0.0-1, 1.0.0-2, …)</td></tr>
+        <tr><td class="env-cell">Post-Deploy Merge</td><td>Hotfix branch merged back into <code>master</code>; next normal release resets to <code>1.1.0</code></td></tr>
+        <tr><td class="env-cell">SLA Target</td><td>P1 hotfix from branch creation to PROD deploy ≤ 4 hours</td></tr>
+      </tbody>
+    </table>
+
+    <!-- ── VERSIONING ─────────────────────────────────────── -->
+    <h2 id="versioning">4. Versioning Model</h2>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Version Type</th><th>Example Tag</th><th>Source Branch</th><th>When Used</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Major Release</td>
+          <td><span class="ver-tag">2.0.0</span></td>
+          <td><code>master</code></td>
+          <td>Breaking API changes or major architectural changes</td>
+        </tr>
+        <tr>
+          <td>Minor Release</td>
+          <td><span class="ver-tag">1.1.0</span></td>
+          <td><code>master</code></td>
+          <td>New features, backwards-compatible</td>
+        </tr>
+        <tr>
+          <td>Patch Release</td>
+          <td><span class="ver-tag">1.0.1</span></td>
+          <td><code>master</code></td>
+          <td>Bug fixes, no new features</td>
+        </tr>
+        <tr>
+          <td>Hotfix Release</td>
+          <td><span class="ver-tag hotfix">1.0.0-1</span></td>
+          <td><code>hotfix/*</code></td>
+          <td>Emergency P1/P2 production fix; suffix counter increments per hotfix</td>
+        </tr>
+        <tr>
+          <td>Subsequent Hotfix</td>
+          <td><span class="ver-tag hotfix">1.0.0-2</span></td>
+          <td><code>hotfix/*</code></td>
+          <td>Second hotfix applied against the same base version before next minor release</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="panel panel-info">
+      <span class="panel-icon">📌</span>
+      <div class="panel-body">
+        <h4>Versioning Rule</h4>
+        <p>The hotfix suffix (<code>-N</code>) resets to <code>-1</code> whenever the MAJOR.MINOR.PATCH component increments.
+        After merging all hotfixes into <code>master</code>, the next tag from <code>master</code> must bump at least the PATCH
+        segment (e.g. <code>1.0.0</code> → <code>1.0.1</code>).</p>
+      </div>
+    </div>
+
+    <!-- ── ENVIRONMENT MATRIX ──────────────────────────────── -->
+    <h2 id="environments">5. Environment Matrix</h2>
+
+    <table class="conf-table">
+      <thead>
+        <tr>
+          <th>Environment</th>
+          <th>Abbr.</th>
+          <th>Deploy Trigger</th>
+          <th>Access</th>
+          <th>Data Classification</th>
+          <th>DR Pair</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="env-cell">Development</td>
+          <td><span class="badge badge-purple">DEV</span></td>
+          <td><code>feature/*</code> push (opt.) / <code>master</code> CI</td>
+          <td>Developers only</td>
+          <td>Synthetic / Mock</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="env-cell">QA Functional</td>
+          <td><span class="badge badge-yellow">QAF</span></td>
+          <td><code>master</code> merge</td>
+          <td>Dev + QA team</td>
+          <td>Anonymised test data</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="env-cell">QA Performance</td>
+          <td><span class="badge badge-yellow">QAP</span></td>
+          <td><code>master</code> merge (after QAF)</td>
+          <td>Dev + QA team</td>
+          <td>Anonymised test data</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="env-cell">QA Regression</td>
+          <td><span class="badge badge-yellow">QAR</span></td>
+          <td><code>master</code> merge (after QAP)</td>
+          <td>Dev + QA team</td>
+          <td>Anonymised test data</td>
+          <td>—</td>
+        </tr>
+        <tr>
+          <td class="env-cell">User Acceptance</td>
+          <td><span class="badge badge-blue">UAT</span></td>
+          <td>Tag push</td>
+          <td>Dev + QA + Business</td>
+          <td>Anonymised / UAT subset</td>
+          <td>UAT-DR</td>
+        </tr>
+        <tr>
+          <td class="env-cell">UAT Disaster Recovery</td>
+          <td><span class="badge badge-blue">UAT-DR</span></td>
+          <td>UAT deploy success</td>
+          <td>Dev + Ops</td>
+          <td>Anonymised / UAT subset</td>
+          <td>UAT</td>
+        </tr>
+        <tr>
+          <td class="env-cell">Production</td>
+          <td><span class="badge badge-red">PROD</span></td>
+          <td>Tag push + CAB approval</td>
+          <td>Ops / on-call only</td>
+          <td>Live PII / Confidential</td>
+          <td>PROD-DR</td>
+        </tr>
+        <tr>
+          <td class="env-cell">Production DR</td>
+          <td><span class="badge badge-red">PROD-DR</span></td>
+          <td>PROD deploy success</td>
+          <td>Ops / on-call only</td>
+          <td>Live PII / Confidential</td>
+          <td>PROD</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── QA GATES ───────────────────────────────────────── -->
+    <h2 id="qa-gates">6. QA Gate Definitions</h2>
+
+    <div class="two-col">
+      <div style="border:1px solid #FF8B00; border-radius:6px; padding:16px; background:#FFFAE6;">
+        <h4 style="color:#FF8B00; margin-top:0;">🧪 QAF — Functional Testing</h4>
+        <p style="font-size:13px;color:#344563;">Validates application behaviour against functional requirements. Includes integration tests, API contract tests, and end-to-end UI flows.</p>
+        <p style="font-size:12px;color:#6B778C; margin:0;"><strong>Tools:</strong> Selenium · Playwright · Postman / Newman · Cucumber</p>
+      </div>
+      <div style="border:1px solid #FF8B00; border-radius:6px; padding:16px; background:#FFFAE6;">
+        <h4 style="color:#FF8B00; margin-top:0;">⚡ QAP — Performance Testing</h4>
+        <p style="font-size:13px;color:#344563;">Validates non-functional requirements: throughput, response times, concurrency, and resource utilisation under simulated production load.</p>
+        <p style="font-size:12px;color:#6B778C; margin:0;"><strong>Tools:</strong> Apache JMeter · k6 · Gatling · Grafana</p>
+      </div>
+    </div>
+    <div style="margin-top:16px; border:1px solid #FF8B00; border-radius:6px; padding:16px; background:#FFFAE6;">
+      <h4 style="color:#FF8B00; margin-top:0;">🔄 QAR — Regression Testing</h4>
+      <p style="font-size:13px;color:#344563;">Full regression suite executed to ensure new changes have not introduced regressions into existing functionality. Runs the complete test library covering all application modules.</p>
+      <p style="font-size:12px;color:#6B778C; margin:0;"><strong>Tools:</strong> Test management platform · automation suite · defect tracking (Jira)</p>
+    </div>
+
+    <!-- ── DEPLOYMENT FLOWS ───────────────────────────────── -->
+    <h2 id="flows">7. Deployment Flows</h2>
+
+    <div class="expand-panel">
+      <div class="expand-header">
+        <span class="arr">▶</span> Normal Release Flow (master → tag → UAT → PROD)
+      </div>
+      <div class="expand-body">
+        <pre><span class="cmt"># 1. Merge feature PRs into master</span>
+git checkout master
+git merge --no-ff feature/PROJ-421
+
+<span class="cmt"># 2. Push triggers CI + QA pipeline automatically</span>
+<span class="cmt">#    QAF → QAP → QAR must all pass</span>
+
+<span class="cmt"># 3. Release Manager creates GPG-signed tag</span>
+git tag -s <span class="str">1.0.0</span> -m <span class="str">"Release 1.0.0 – Q2 Feature Bundle"</span>
+git push origin <span class="str">1.0.0</span>
+
+<span class="cmt"># 4. Tag push auto-triggers pipeline:</span>
+<span class="cmt">#    Deploy UAT → UAT-DR → [CAB APPROVAL] → PROD → PROD-DR</span></pre>
+      </div>
+    </div>
+
+    <div class="expand-panel" style="margin-top:12px;">
+      <div class="expand-header">
+        <span class="arr">▶</span> Hotfix Release Flow (hotfix/* → validate → tag → PROD)
+      </div>
+      <div class="expand-body">
+        <pre><span class="cmt"># 1. P1 incident raised; hotfix branch from master</span>
+git checkout master        <span class="cmt"># at commit matching failing PROD tag</span>
+git checkout -b <span class="str">hotfix/INC-8842-payment-timeout</span>
+
+<span class="cmt"># 2. Apply fix, push → auto-triggers DEV deploy + QAF + QAR</span>
+git commit -m <span class="str">"fix: increase payment gateway timeout to 30s"</span>
+git push origin hotfix/INC-8842-payment-timeout
+
+<span class="cmt"># 3. All lower-env gates pass; Release Manager creates hotfix tag</span>
+git tag -s <span class="str">1.0.0-1</span> -m <span class="str">"Hotfix 1.0.0-1 – Payment timeout fix INC-8842"</span>
+git push origin <span class="str">1.0.0-1</span>
+
+<span class="cmt"># 4. Tag push auto-triggers: UAT → UAT-DR → PROD → PROD-DR</span>
+
+<span class="cmt"># 5. Merge hotfix back into master (no squash — preserve history)</span>
+git checkout master
+git merge --no-ff hotfix/INC-8842-payment-timeout
+git push origin master
+
+<span class="cmt"># 6. Delete hotfix branch</span>
+git push origin --delete hotfix/INC-8842-payment-timeout</pre>
+      </div>
+    </div>
+
+    <!-- ── SECURITY CONTROLS ───────────────────────────────── -->
+    <h2 id="security">8. Security Controls (DevSecOps)</h2>
+
+    <table class="conf-table">
+      <thead>
+        <tr><th>Control</th><th>Tool / Method</th><th>Stage</th><th>Policy on Fail</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Static Application Security Testing (SAST)</td>
+          <td>SonarQube / Checkmarx</td>
+          <td>PR / CI Build</td>
+          <td>Block merge if Critical/High findings</td>
+        </tr>
+        <tr>
+          <td>Software Composition Analysis (SCA)</td>
+          <td>OWASP Dependency-Check / Snyk</td>
+          <td>CI Build</td>
+          <td>Block on CVSS ≥ 7.0 unfixed CVEs</td>
+        </tr>
+        <tr>
+          <td>Secret Scanning</td>
+          <td>GitLeaks / TruffleHog</td>
+          <td>Pre-commit + CI</td>
+          <td>Block commit / alert Security team</td>
+        </tr>
+        <tr>
+          <td>Container Image Scan</td>
+          <td>Trivy / Prisma Cloud</td>
+          <td>CI Build (post Docker build)</td>
+          <td>Block on Critical CVE in base image</td>
+        </tr>
+        <tr>
+          <td>Dynamic Application Security Testing (DAST)</td>
+          <td>OWASP ZAP</td>
+          <td>QAF stage</td>
+          <td>Alert on High; block on Critical</td>
+        </tr>
+        <tr>
+          <td>Infrastructure as Code Scan</td>
+          <td>Checkov / tfsec</td>
+          <td>PR / CI</td>
+          <td>Block on policy violations</td>
+        </tr>
+        <tr>
+          <td>Tag Signing</td>
+          <td>GPG signed tags</td>
+          <td>Tag creation</td>
+          <td>Unsigned tags rejected by pipeline</td>
+        </tr>
+        <tr>
+          <td>Deployment Approval</td>
+          <td>CAB + ITSM CR</td>
+          <td>Pre-PROD</td>
+          <td>Pipeline halted until CR approved</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- ── RACI ───────────────────────────────────────────── -->
+    <h2 id="responsibilities">9. RACI Matrix</h2>
+
+    <table class="conf-table">
+      <thead>
+        <tr>
+          <th>Activity</th>
+          <th>Developer</th>
+          <th>QA Engineer</th>
+          <th>Release Manager</th>
+          <th>DevSecOps / Ops</th>
+          <th>CAB</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Create feature/* branch</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R/A</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+        </tr>
+        <tr>
+          <td>Merge PR to master</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">A</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+        </tr>
+        <tr>
+          <td>QA Gate Sign-off (QAF/QAP/QAR)</td>
+          <td style="text-align:center;color:#6B778C">C</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R/A</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">C</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+        </tr>
+        <tr>
+          <td>Create release tag</td>
+          <td style="text-align:center;color:#6B778C">C</td>
+          <td style="text-align:center;color:#6B778C">C</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R/A</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+        </tr>
+        <tr>
+          <td>UAT / UAT-DR deploy</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">C</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">A</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R</td>
+          <td style="text-align:center;color:#6B778C">—</td>
+        </tr>
+        <tr>
+          <td>PROD / PROD-DR deploy</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;color:#6B778C">I</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">A</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">R</td>
+          <td style="text-align:center;font-weight:700;color:#0052CC">A</td>
+        </tr>
+        <tr>
+          <td>Hotfix branch + deploy</td>
+          <td style="text-align:center;font-weight:700;color:#DE350B">R</td>
+          <td style="text-align:center;font-weight:700;color:#DE350B">R</td>
+          <td style="text-align:center;font-weight:700;color:#DE350B">A</td>
+          <td style="text-align:center;font-weight:700;color:#DE350B">R</td>
+          <td style="text-align:center;font-weight:700;color:#DE350B">A</td>
+        </tr>
+      </tbody>
+    </table>
+    <p style="font-size:12px;color:#6B778C;">
+      <strong>R</strong> = Responsible &nbsp;|&nbsp; <strong>A</strong> = Accountable &nbsp;|&nbsp;
+      <strong>C</strong> = Consulted &nbsp;|&nbsp; <strong>I</strong> = Informed
+    </p>
+
+    <hr/>
+
+    <p style="font-size:12px;color:#6B778C;text-align:center;">
+      📄 This page is owned by <strong>Platform Engineering</strong> · Last reviewed April 29, 2026 ·
+      Raise queries in <code>#devops-pipeline</code> Slack channel or create a Jira issue in <code>PLAT</code> project.
+    </p>
+
+  </main>
+</div>
+
+<script>
+  // Sidebar active-link on scroll
+  const sections = document.querySelectorAll('h2[id], h3[id]');
+  const links    = document.querySelectorAll('.sidebar a');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const active = document.querySelector(`.sidebar a[href="#${e.target.id}"]`);
+        if (active) active.classList.add('active');
+      }
+    });
+  }, { rootMargin: '-60px 0px -70% 0px' });
+  sections.forEach(s => obs.observe(s));
+
+  // Expand/collapse panels
+  document.querySelectorAll('.expand-header').forEach(h => {
+    h.addEventListener('click', () => {
+      const body = h.nextElementSibling;
+      const arr  = h.querySelector('.arr');
+      if (body.style.display === 'none') { body.style.display = ''; arr.textContent = '▼'; }
+      else { body.style.display = 'none'; arr.textContent = '▶'; }
+    });
+  });
+</script>
+</body>
+</html>
